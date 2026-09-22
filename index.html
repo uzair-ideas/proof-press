@@ -267,7 +267,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
   <section class="hero" id="hero">
     <h2>Raw screenshots in, store art out.</h2>
-    <p>Drop the plain screenshots straight from your phone or emulator. Pick a background, type a headline, and get PNGs at exactly 1080×1920 — the size Google Play asks for.</p>
+    <p>Drop the plain screenshots straight from your phone, emulator or simulator. Pick a background, type a headline, and get PNGs at the exact sizes <strong>Google Play</strong> and the <strong>App Store</strong> ask for — 1080×1920 for Play, 1290×2796 and the rest for iPhone and iPad.</p>
     <p>Nothing leaves your browser. The images are drawn on a canvas right here.</p>
 
     <canvas id="sampleCv" width="940" height="420" role="img"
@@ -277,19 +277,24 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
       <span class="crop tl"></span><span class="crop tr"></span><span class="crop bl"></span><span class="crop br"></span>
       <strong>Drop screenshots here</strong>
       <button class="btn solid" id="pick">Choose files</button>
-      <small>PNG or JPEG · you can also paste with Ctrl+V · 2 to 8 shots for a Play listing</small>
+      <small>PNG or JPEG · you can also paste with Ctrl+V · 2 to 8 shots for Play, 1 to 10 for the App Store</small>
     </div>
+  </section>
+
+  <section class="platform" id="platformPick">
+    <h2>Publishing to</h2>
+    <div class="seg big" id="platform">
+      <button data-v="play" aria-pressed="false">Google Play</button>
+      <button data-v="ios" aria-pressed="false">App Store</button>
+      <button data-v="both" aria-pressed="true">Both</button>
+    </div>
+    <p class="hint" id="platformHint">Both stores are covered. Switch any time — the sizes, the icon and the checklist follow your choice.</p>
   </section>
 
   <div class="deck" id="deck">
 
     <section class="platform">
-      <h2>Publishing to</h2>
-      <div class="seg big" id="platform">
-        <button data-v="play" aria-pressed="false">Google Play</button>
-        <button data-v="ios" aria-pressed="false">App Store</button>
-        <button data-v="both" aria-pressed="true">Both</button>
-      </div>
+      <h2>What the stores need</h2>
       <div class="checklist" id="checklist"></div>
       <div class="autorow">
         <button class="btn solid" id="bundleDl">Download everything as one ZIP</button>
@@ -482,7 +487,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
   <section class="assets" id="assets">
     <h2>Store assets</h2>
-    <p class="autonote">The two other images Play asks for. They reuse the colours, backdrop shape and font from above, so the listing reads as one set.</p>
+    <p class="autonote">The other images a listing needs: an app icon for both stores, and a feature graphic for Google Play. They reuse the colours, backdrop shape and font from above, so the listing reads as one set.</p>
     <div class="autorow">
       <label for="bc1">Colours</label>
       <input type="color" id="bc1"><input type="color" id="bc2">
@@ -512,7 +517,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           <button data-v="512" aria-pressed="true">Play 512</button>
           <button data-v="1024" aria-pressed="false">App Store 1024</button>
         </div>
-        <p class="hint">Drag the logo to reposition it. Play rounds the corners, so keep the mark inside the dashed shape. The guide is not exported.</p>
+        <p class="hint">Drag the logo to reposition it. Both stores round the corners, so keep the mark inside the dashed shape. Play takes 512 × 512; the App Store takes 1024 × 1024 with no transparency. The guide is not exported.</p>
         <button class="btn solid" id="iconDl">Download icon PNG &middot; 512 px</button>
       </div>
 
@@ -550,7 +555,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
     <p class="status" id="assetStatus"></p>
   </section>
 
-  <p class="foot" id="foot">Play Store accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px. Both sizes here sit inside that. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks. The icon is exported at 512 × 512 and the feature graphic at 1024 × 500, the sizes Play requires.</p>
+  <p class="foot" id="foot">Google Play accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px, plus a 512 × 512 icon and a 1024 × 500 feature graphic. The App Store takes 1–10 screenshots per device size — 1290 × 2796 for the 6.9″ iPhone, 2048 × 2732 for the 13″ iPad — and a 1024 × 1024 icon with no transparency. Every size offered here sits inside those rules. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks.</p>
 </div>
 
 <input type="file" id="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
@@ -1035,7 +1040,7 @@ function renderAll(){
   var who = ios ? "The App Store" : "Play";
   if(S.shots.length < lo){ c.textContent = who + " needs at least " + lo + ". Add another shot, or split this one across 2 panels."; c.className = "note bad"; }
   else if(S.shots.length > hi){ c.textContent = who + " accepts " + hi + " at most. Remove " + (S.shots.length-hi) + "."; c.className = "note bad"; }
-  else if(isStrip()){ c.textContent = "One image cut into " + S.shots.length + " slices. Keep this order in Play Console."; c.className = "note"; }
+  else if(isStrip()){ c.textContent = "One image cut into " + S.shots.length + " slices. Keep this order in " + (ios ? "App Store Connect" : "Play Console") + "."; c.className = "note"; }
   else { c.textContent = "Ready for upload."; c.className = "note"; }
 
   strip.innerHTML = "";

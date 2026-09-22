@@ -149,7 +149,22 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .prompt .split .pn{color:var(--accent)}
 .autorow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 4px}
 .autorow label{font-size:13px;color:var(--ink-soft)}
+#sizePick{width:100%;border:1px solid var(--rule);border-radius:3px;background:var(--paper);padding:7px 9px;font-size:13px}
 #splitPick{border:1px solid var(--rule);border-radius:3px;background:var(--paper);padding:7px 9px;font-size:14px}
+.platform{margin-top:26px}
+.platform h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:24px;letter-spacing:-.03em;margin:0 0 12px}
+.seg.big button{padding:9px 16px;font-size:14px}
+.checklist{border:1px solid var(--rule);border-radius:4px;background:var(--panel);margin:16px 0 14px;overflow:hidden}
+.crow{display:flex;gap:13px;align-items:center;padding:13px 16px;border-top:1px solid var(--rule);flex-wrap:wrap}
+.crow:first-child{border-top:0}
+.crow .nm{font-weight:600;font-size:14px;min-width:178px}
+.crow .sp{font-size:13px;color:var(--ink-soft);flex:1;min-width:170px}
+.crow .st{font-size:13px;min-width:104px}
+.crow .st.ok{color:var(--accent);font-weight:600}
+.crow .st.bad{color:var(--warn)}
+.tag{font-size:11px;font-weight:700;padding:3px 7px;border-radius:2px;border:1px solid var(--rule);white-space:nowrap}
+.tag.play{background:color-mix(in srgb,var(--accent) 18%,transparent)}
+.tag.ios{background:color-mix(in srgb,var(--ink) 12%,transparent)}
 .assets{margin-top:46px;padding-top:30px;border-top:1px solid var(--rule)}
 .assets .status{font-size:13px;color:var(--ink-soft);margin:16px 0 0;min-height:20px}
 .assets h2{font-family:"Bricolage Grotesque",sans-serif;font-weight:800;font-size:26px;letter-spacing:-.03em;margin:0 0 8px}
@@ -268,6 +283,20 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
   <div class="deck" id="deck">
 
+    <section class="platform">
+      <h2>Publishing to</h2>
+      <div class="seg big" id="platform">
+        <button data-v="play" aria-pressed="false">Google Play</button>
+        <button data-v="ios" aria-pressed="false">App Store</button>
+        <button data-v="both" aria-pressed="true">Both</button>
+      </div>
+      <div class="checklist" id="checklist"></div>
+      <div class="autorow">
+        <button class="btn solid" id="bundleDl">Download everything as one ZIP</button>
+        <span class="hint" id="bundleState" style="margin:0"></span>
+      </div>
+    </section>
+
     <div class="controls">
       <div class="ctrl">
         <h3>Background</h3>
@@ -322,10 +351,10 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
       <div class="ctrl">
         <h3>Output size</h3>
-        <div class="seg" id="size">
-          <button data-v="portrait" aria-pressed="true">1080 × 1920</button>
-          <button data-v="landscape" aria-pressed="false">1920 × 1080</button>
-        </div>
+        <select id="sizePick" aria-label="Output size">
+          <optgroup label="Google Play" id="grpPlay"></optgroup>
+          <optgroup label="App Store" id="grpIos"></optgroup>
+        </select>
         <h3 style="margin-top:16px">Across the set</h3>
         <div class="seg" id="mode">
           <button data-v="separate" aria-pressed="true">Separate</button>
@@ -464,7 +493,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
     <div class="assetgrid">
       <div class="assetcard">
-        <h3>App icon &middot; 512 &times; 512</h3>
+        <h3 id="iconHead">App icon &middot; 512 &times; 512</h3>
         <canvas id="iconCv" width="512" height="512" class="icon"></canvas>
         <div class="autorow">
           <button class="btn small ghost" id="iconPick">Choose logo</button>
@@ -479,12 +508,16 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           </div>
           <button class="btn small ghost" id="iconGuide" aria-pressed="true">Corner guide</button>
         </div>
+        <div class="seg" id="iconSize" style="margin-top:10px">
+          <button data-v="512" aria-pressed="true">Play 512</button>
+          <button data-v="1024" aria-pressed="false">App Store 1024</button>
+        </div>
         <p class="hint">Drag the logo to reposition it. Play rounds the corners, so keep the mark inside the dashed shape. The guide is not exported.</p>
-        <button class="btn solid" id="iconDl">Download icon PNG</button>
+        <button class="btn solid" id="iconDl">Download icon PNG &middot; 512 px</button>
       </div>
 
-      <div class="assetcard">
-        <h3>Feature graphic &middot; 1024 &times; 500</h3>
+      <div class="assetcard" id="featCard">
+        <h3>Feature graphic &middot; 1024 &times; 500 &middot; Google Play only</h3>
         <canvas id="featCv" width="1024" height="500"></canvas>
         <input type="text" id="featHead" placeholder="Headline">
         <input type="text" id="featSub" placeholder="Supporting line, optional">
@@ -539,11 +572,22 @@ var THEMES = [
   {id:"linen",    c1:"#F1EBE1", c2:"#D6C6B0", ang:175, fg:"dark",  decor:"#2A211A"}
 ];
 
+var SIZES = [
+  { id:"play-portrait", label:"Phone portrait \u00b7 1080 \u00d7 1920", w:1080, h:1920, store:"play" },
+  { id:"play-land",     label:"Phone landscape \u00b7 1920 \u00d7 1080", w:1920, h:1080, store:"play" },
+  { id:"ios-69",        label:"iPhone 6.9\" \u00b7 1290 \u00d7 2796", w:1290, h:2796, store:"ios" },
+  { id:"ios-69b",       label:"iPhone 6.9\" \u00b7 1320 \u00d7 2868", w:1320, h:2868, store:"ios" },
+  { id:"ios-65",        label:"iPhone 6.5\" \u00b7 1242 \u00d7 2688", w:1242, h:2688, store:"ios" },
+  { id:"ios-55",        label:"iPhone 5.5\" \u00b7 1242 \u00d7 2208", w:1242, h:2208, store:"ios" },
+  { id:"ipad-13",       label:"iPad 13\" \u00b7 2048 \u00d7 2732", w:2048, h:2732, store:"ios" },
+  { id:"ipad-11",       label:"iPad 11\" \u00b7 1668 \u00d7 2388", w:1668, h:2388, store:"ios" }
+];
+
 var S = {
   theme:THEMES[0].id, c1:THEMES[0].c1, c2:THEMES[0].c2, ang:THEMES[0].ang, decorColor:THEMES[0].decor,
   decor:"card", decorPos:0.62, decorScale:1, fgMode:"auto", themeFg:"light",
-  frame:"dark", font:"Archivo", size:"portrait",
-  mode:"separate", seams:true, bgScope:"all",
+  frame:"dark", font:"Archivo", size:"play-portrait",
+  mode:"separate", seams:true, bgScope:"all", platform:"both",
   shots:[], sel:0
 };
 
@@ -883,8 +927,14 @@ function grip(ctx, pt, r){
   ctx.fill(); ctx.stroke();
   ctx.restore();
 }
+function sizeDef(){
+  for(var i=0;i<SIZES.length;i++) if(SIZES[i].id === S.size) return SIZES[i];
+  return SIZES[0];
+}
 function dims(){
-  return S.size === "portrait" ? {w:1080,h:1920,portrait:true} : {w:1920,h:1080,portrait:false};
+  var z = sizeDef(), portrait = z.h >= z.w;
+  var bw = portrait ? 1080 : 1920;
+  return { w:bw, h:Math.round(bw * z.h / z.w), outW:z.w, outH:z.h, portrait:portrait, store:z.store };
 }
 function paint(canvas, i){
   var d = dims();
@@ -981,8 +1031,10 @@ function renderAll(){
     : "no shots yet";
 
   var c = $("count");
-  if(S.shots.length < 2){ c.textContent = "Play needs at least 2. Add another shot, or split this one across 2 panels."; c.className = "note bad"; }
-  else if(S.shots.length > 8){ c.textContent = "Play accepts 8 at most. Remove " + (S.shots.length-8) + "."; c.className = "note bad"; }
+  var ios = d.store === "ios", lo = ios ? 1 : 2, hi = ios ? 10 : 8;
+  var who = ios ? "The App Store" : "Play";
+  if(S.shots.length < lo){ c.textContent = who + " needs at least " + lo + ". Add another shot, or split this one across 2 panels."; c.className = "note bad"; }
+  else if(S.shots.length > hi){ c.textContent = who + " accepts " + hi + " at most. Remove " + (S.shots.length-hi) + "."; c.className = "note bad"; }
   else if(isStrip()){ c.textContent = "One image cut into " + S.shots.length + " slices. Keep this order in Play Console."; c.className = "note"; }
   else { c.textContent = "Ready for upload."; c.className = "note"; }
 
@@ -991,7 +1043,7 @@ function renderAll(){
     var box = document.createElement("div");
     box.className = "shot" + (i === S.sel ? " sel" : "");
     var cv = document.createElement("canvas");
-    var pw = d.portrait ? 186 : 300;
+    var pw = d.portrait ? Math.round(330 * d.w / d.h) : 300;
     cv.width = Math.round(pw*2); cv.height = Math.round(pw*2*d.h/d.w);
     cv.style.aspectRatio = d.w + "/" + d.h;
     box.style.width = pw + "px";
@@ -1047,6 +1099,7 @@ function renderAll(){
   paintJoined();
   fillShotSelect();
   paintAssets();
+  renderChecklist();
 }
 
 function placeCaret(){
@@ -1345,7 +1398,16 @@ bindSeg("decor", function(v){ S.decor = v; renderAll(); });
 bindSeg("fg",    function(v){ S.fgMode = v; renderAll(); });
 bindSeg("frame", function(v){ S.frame = v; renderAll(); });
 bindSeg("font",  function(v){ S.font = v; ensureFonts().then(renderAll); });
-bindSeg("size",  function(v){ S.size = v; renderAll(); });
+(function(){
+  var sel = $("sizePick");
+  SIZES.forEach(function(z){
+    var o = document.createElement("option");
+    o.value = z.id; o.textContent = z.label;
+    $(z.store === "ios" ? "grpIos" : "grpPlay").appendChild(o);
+  });
+  sel.value = S.size;
+  sel.onchange = function(){ S.size = this.value; renderAll(); };
+})();
 bindSeg("layout",function(v){
   var sel = S.shots[S.sel]; if(!sel) return;
   sel.layout = v; sel.tx = null; sel.ty = null; sel.align = null; sel.rot = null;
@@ -1449,8 +1511,9 @@ function status(msg){ $("status").textContent = msg || ""; }
 function renderFull(i){
   var d = dims();
   var cv = document.createElement("canvas");
-  cv.width = d.w; cv.height = d.h;
+  cv.width = d.outW; cv.height = d.outH;
   var ctx = cv.getContext("2d");
+  ctx.scale(d.outW/d.w, d.outH/d.h);
   composePanel(ctx, i, d.w, d.h, d.portrait);
   return new Promise(function(res){ cv.toBlob(function(b){ res(b); }, "image/png"); });
 }
@@ -1480,7 +1543,8 @@ $("dlOne").onclick = function(){
   var shot = S.shots[S.sel]; if(!shot) return;
   status("Rendering at full size…");
   ensureFonts().then(function(){ return renderFull(S.sel); }).then(function(b){
-    return saveFile("screenshot-" + String(S.sel+1).padStart(2,"0") + ".png", b);
+    var d = dims();
+    return saveFile("screenshot-" + String(S.sel+1).padStart(2,"0") + "-" + d.outW + "x" + d.outH + ".png", b);
   }).then(function(){ status("Done."); })
     .catch(function(err){ status(err && err.code === "declined" ? "Save cancelled." : "Could not save that file."); });
 };
@@ -1549,7 +1613,8 @@ $("dlAll").onclick = function(){
     return chain;
   }).then(function(entries){
     status("Packing the ZIP…");
-    return saveFile("play-screenshots.zip", makeZip(entries));
+    var dz = dims();
+    return saveFile("screenshots-" + dz.outW + "x" + dz.outH + ".zip", makeZip(entries));
   }).then(function(){ status("Done. " + S.shots.length + " files packed."); })
     .catch(function(err){ status(err && err.code === "declined" ? "Save cancelled." : "Something went wrong packing the ZIP."); })
     .then(function(){ btn.disabled = false; });
@@ -1776,6 +1841,199 @@ $("splitPick").onchange = renderPrompts;
 
 
 
+
+/* ============ platform ============ */
+function wants(store){ return S.platform === "both" || S.platform === store; }
+
+function iconReady(){ return !!(ICON.img || ICON.bg !== "none"); }
+
+function checklistRows(){
+  var n = S.shots.length, rows = [];
+  if(wants("play")){
+    rows.push({ store:"play", nm:"Phone screenshots", sp:"1080 \u00d7 1920 \u00b7 2 to 8 files",
+      ok: n >= 2 && n <= 8,
+      st: n < 2 ? "Need " + (2-n) + " more" : (n > 8 ? "Remove " + (n-8) : n + " ready"),
+      act: function(){ exportAt("play-portrait"); } });
+    rows.push({ store:"play", nm:"App icon", sp:"512 \u00d7 512 PNG, under 1 MB",
+      ok: iconReady(), st: iconReady() ? "Ready" : "Add a logo",
+      act: function(){ exportIcon(512); } });
+    rows.push({ store:"play", nm:"Feature graphic", sp:"1024 \u00d7 500 PNG",
+      ok: !!FEAT.head, st: FEAT.head ? "Ready" : "Add a headline",
+      act: exportFeature });
+  }
+  if(wants("ios")){
+    rows.push({ store:"ios", nm:"iPhone 6.9\" screenshots", sp:"1290 \u00d7 2796 \u00b7 1 to 10 files",
+      ok: n >= 1 && n <= 10,
+      st: n < 1 ? "Add a shot" : (n > 10 ? "Remove " + (n-10) : n + " ready"),
+      act: function(){ exportAt("ios-69"); } });
+    rows.push({ store:"ios", nm:"iPad 13\" screenshots", sp:"2048 \u00d7 2732 \u00b7 only if you ship for iPad",
+      ok: n >= 1, st: n >= 1 ? "Optional" : "Add a shot",
+      act: function(){ exportAt("ipad-13"); } });
+    rows.push({ store:"ios", nm:"App icon", sp:"1024 \u00d7 1024 PNG, no transparency",
+      ok: iconReady() && ICON.bg !== "none",
+      st: !iconReady() ? "Add a logo" : (ICON.bg === "none" ? "Needs a background" : "Ready"),
+      act: function(){ exportIcon(1024); } });
+  }
+  return rows;
+}
+
+function renderChecklist(){
+  var host = $("checklist");
+  if(!host) return;
+  host.innerHTML = "";
+  checklistRows().forEach(function(r){
+    var row = document.createElement("div");
+    row.className = "crow";
+
+    var tag = document.createElement("span");
+    tag.className = "tag " + r.store;
+    tag.textContent = r.store === "ios" ? "App Store" : "Google Play";
+    row.appendChild(tag);
+
+    var nm = document.createElement("span");
+    nm.className = "nm"; nm.textContent = r.nm;
+    row.appendChild(nm);
+
+    var sp = document.createElement("span");
+    sp.className = "sp"; sp.textContent = r.sp;
+    row.appendChild(sp);
+
+    var st = document.createElement("span");
+    st.className = "st " + (r.ok ? "ok" : "bad"); st.textContent = r.st;
+    row.appendChild(st);
+
+    var b = document.createElement("button");
+    b.className = "btn small ghost"; b.textContent = "Build";
+    b.onclick = r.act;
+    row.appendChild(b);
+
+    host.appendChild(row);
+  });
+}
+
+function refitSizePicker(){
+  var sel = $("sizePick");
+  $("grpPlay").style.display = wants("play") ? "" : "none";
+  $("grpIos").style.display = wants("ios") ? "" : "none";
+  Array.prototype.forEach.call(sel.options, function(o){
+    var z = SIZES.filter(function(x){ return x.id === o.value; })[0];
+    o.disabled = z ? !wants(z.store) : false;
+  });
+  if(!wants(sizeDef().store)){
+    S.size = SIZES.filter(function(z){ return wants(z.store); })[0].id;
+  }
+  sel.value = S.size;
+}
+
+function applyPlatform(){
+  refitSizePicker();
+  $("featCard").style.display = wants("play") ? "" : "none";
+  var both = S.platform === "both";
+  $("iconSize").style.display = both ? "" : "none";
+  if(!both){
+    ICON.size = S.platform === "ios" ? 1024 : 512;
+    setSeg("iconSize", String(ICON.size));
+  }
+  $("iconHead").innerHTML = "App icon &middot; " + ICON.size + " &times; " + ICON.size;
+  $("iconDl").innerHTML = "Download icon PNG &middot; " + ICON.size + " px";
+  renderChecklist();
+}
+
+bindSeg("platform", function(v){ S.platform = v; applyPlatform(); renderAll(); paintAssets(); });
+
+/* ============ one-click bundle ============ */
+function pngAt(sizeId, i){
+  var keep = S.size;
+  S.size = sizeId;
+  var out = renderFull(i);
+  S.size = keep;
+  return out;
+}
+function blobBytes(b){ return b.arrayBuffer().then(function(ab){ return new Uint8Array(ab); }); }
+
+function exportAt(sizeId){
+  if(!S.shots.length) return;
+  S.size = sizeId;
+  $("sizePick").value = sizeId;
+  renderAll();
+  $("dlAll").click();
+}
+function exportIcon(px){
+  ICON.size = px;
+  setSeg("iconSize", String(px));
+  applyPlatform();
+  paintIcon();
+  $("iconDl").click();
+}
+function exportFeature(){ $("featDl").click(); }
+
+function iconBytes(px){
+  var cv = document.createElement("canvas");
+  cv.width = px; cv.height = px;
+  withAssetPalette(function(){ drawIconArt(cv.getContext("2d"), 0, 0, px); });
+  return new Promise(function(res){ cv.toBlob(res, "image/png"); }).then(blobBytes);
+}
+function featureBytes(){
+  var cv = document.createElement("canvas");
+  cv.width = 1024; cv.height = 500;
+  withAssetPalette(function(){ drawFeature(cv.getContext("2d"), 1024, 500); });
+  return new Promise(function(res){ cv.toBlob(res, "image/png"); }).then(blobBytes);
+}
+
+function downloadBundle(){
+  var btn = $("bundleDl");
+  btn.disabled = true;
+  var say = function(m){ $("bundleState").textContent = m || ""; };
+  var files = [];
+  var jobs = [];
+
+  if(wants("play")){
+    S.shots.forEach(function(sh,i){
+      jobs.push({ note:"Play screenshot " + (i+1), run:function(){
+        return pngAt("play-portrait", i).then(blobBytes).then(function(u){
+          files.push({ name:"google-play/screenshots/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
+        });
+      }});
+    });
+    jobs.push({ note:"Play icon", run:function(){
+      return iconBytes(512).then(function(u){ files.push({ name:"google-play/app-icon-512.png", data:u }); });
+    }});
+    jobs.push({ note:"Feature graphic", run:function(){
+      return featureBytes().then(function(u){ files.push({ name:"google-play/feature-graphic-1024x500.png", data:u }); });
+    }});
+  }
+  if(wants("ios")){
+    S.shots.forEach(function(sh,i){
+      jobs.push({ note:"iPhone screenshot " + (i+1), run:function(){
+        return pngAt("ios-69", i).then(blobBytes).then(function(u){
+          files.push({ name:"app-store/iphone-6.9/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
+        });
+      }});
+    });
+    jobs.push({ note:"App Store icon", run:function(){
+      return iconBytes(1024).then(function(u){ files.push({ name:"app-store/app-icon-1024.png", data:u }); });
+    }});
+  }
+
+  var chain = ensureFonts();
+  jobs.forEach(function(j, n){
+    chain = chain.then(function(){
+      say("Rendering " + (n+1) + " of " + jobs.length + " \u2014 " + j.note);
+      return j.run();
+    });
+  });
+
+  chain.then(function(){
+    say("Packing the ZIP\u2026");
+    return saveFile("store-assets.zip", makeZip(files));
+  }).then(function(){
+    say("Done. " + files.length + " files, sorted into folders per store.");
+  }).catch(function(err){
+    say(err && err.code === "declined" ? "Save cancelled." : "Something went wrong building the bundle.");
+  }).then(function(){ btn.disabled = false; });
+}
+$("bundleDl").onclick = downloadBundle;
+
 /* ============ hero sample ============ */
 function cssVar(n){
   var v = getComputedStyle(document.documentElement).getPropertyValue(n);
@@ -1896,7 +2154,7 @@ function drawHeroSample(){
 }
 
 /* ============ store assets ============ */
-var ICON = { img:null, zoom:1, x:0, y:0, bg:"grad", guide:true };
+var ICON = { img:null, zoom:1, x:0, y:0, bg:"grad", guide:true, size:512 };
 var ASSET = { c1:null, c2:null };
 
 function withAssetPalette(fn){
@@ -1958,7 +2216,8 @@ function paintIcon(){
     ctx.save();
     ctx.strokeStyle = "rgba(255,255,255,.8)";
     ctx.lineWidth = 3; ctx.setLineDash([14,12]);
-    rr(ctx, 26, 26, W-52, W-52, W*0.21); ctx.stroke();
+    var radius = ICON.size === 1024 ? W*0.225 : W*0.21;
+    rr(ctx, 26, 26, W-52, W-52, radius); ctx.stroke();
     ctx.restore();
   }
 }
@@ -2073,6 +2332,12 @@ $("logoFile").onchange = function(e){
 };
 $("iconZoom").oninput = function(e){ ICON.zoom = (+e.target.value)/100; paintAssets(); };
 bindSeg("iconBg", function(v){ ICON.bg = v; paintAssets(); });
+bindSeg("iconSize", function(v){
+  ICON.size = +v;
+  $("iconHead").innerHTML = "App icon &middot; " + ICON.size + " &times; " + ICON.size;
+  $("iconDl").textContent = "Download icon PNG \u00b7 " + ICON.size + " px";
+  paintIcon();
+});
 $("iconGuide").onclick = function(){
   ICON.guide = !ICON.guide;
   this.setAttribute("aria-pressed", String(ICON.guide));
@@ -2120,13 +2385,19 @@ function assetStatus(m){ $("assetStatus").textContent = m || ""; }
 $("iconDl").onclick = function(){
   assetStatus("Rendering the icon\u2026");
   ensureFonts().then(function(){
+    var n = ICON.size;
     var cv = document.createElement("canvas");
-    cv.width = 512; cv.height = 512;
-    withAssetPalette(function(){ drawIconArt(cv.getContext("2d"), 0, 0, 512); });
+    cv.width = n; cv.height = n;
+    withAssetPalette(function(){ drawIconArt(cv.getContext("2d"), 0, 0, n); });
     return new Promise(function(res){ cv.toBlob(res, "image/png"); });
   }).then(function(b){
-    return saveFile("app-icon-512.png", b).then(function(){
-      assetStatus("Saved. " + Math.round(b.size/1024) + " KB, well under the 1 MB cap.");
+    return saveFile("app-icon-" + ICON.size + ".png", b).then(function(){
+      var note = ICON.size === 1024
+        ? (ICON.bg === "none"
+            ? " Apple rejects icons with transparency, so pick Gradient or Solid unless your logo is fully opaque."
+            : " Apple rounds the corners itself, so this square is correct.")
+        : " Well under the 1 MB cap.";
+      assetStatus("Saved " + ICON.size + " \u00d7 " + ICON.size + ", " + Math.round(b.size/1024) + " KB." + note);
     });
   }).catch(function(err){ assetStatus(err && err.code === "declined" ? "Save cancelled." : "Could not save the icon."); });
 };
@@ -2149,6 +2420,7 @@ $("featDl").onclick = function(){
 $("ac1").value = S.c1; $("ac2").value = S.c2;
 syncAssetPalette();
 
+applyPlatform();
 ensureFonts().then(function(){ paintAssets(); drawHeroSample(); });
 renderAll();
 drawHeroSample();

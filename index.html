@@ -50,8 +50,8 @@ button{cursor:pointer}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 
 /* ---------- chrome ---------- */
+.topdock{position:sticky;top:0;z-index:40}
 .bar{
-  position:sticky;top:0;z-index:40;
   padding:calc(env(safe-area-inset-top,0px) + 14px) 20px 14px;
   background:color-mix(in srgb,var(--paper) 88%,transparent);
   backdrop-filter:blur(10px);
@@ -65,6 +65,31 @@ button{cursor:pointer}
 .mark span{font-weight:400;font-style:italic;font-family:"Instrument Serif",serif;font-size:23px}
 .bar .meta{color:var(--ink-soft);font-size:13px;font-variant-numeric:tabular-nums}
 .bar .spacer{flex:1}
+
+/* live rail: keeps the proofs on screen while you work the controls */
+.peek{
+  position:absolute;top:100%;left:0;right:0;
+  display:none;gap:9px;align-items:center;
+  padding:9px 20px 10px;overflow-x:auto;
+  background:color-mix(in srgb,var(--paper) 94%,transparent);
+  backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--rule);
+}
+.peek.on{display:flex}
+.peek .plabel{
+  flex:0 0 auto;font-size:11px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-soft);margin-right:3px;
+}
+.peek canvas{
+  flex:0 0 auto;height:112px;width:auto;display:block;cursor:pointer;
+  border:1px solid var(--rule);border-radius:3px;background:var(--panel);
+}
+.peek canvas.sel{outline:2px solid var(--accent);outline-offset:1px}
+@media (max-width:640px){
+  .peek{padding:7px 14px 8px;gap:7px}
+  .peek canvas{height:84px}
+  .peek .plabel{display:none}
+}
 
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px 80px}
 
@@ -133,6 +158,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .auto h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:17px;letter-spacing:-.02em;margin:0 0 8px}
 .autonote{margin:0 0 14px;font-size:13px;color:var(--ink-soft);max-width:70ch}
 .autonote code{background:color-mix(in srgb,var(--ink) 10%,transparent);padding:1px 4px;border-radius:2px}
+#prompts{max-height:330px;overflow-y:auto;overscroll-behavior:contain}
 .prompt{display:flex;gap:13px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--rule)}
 .prompt img{width:38px;height:66px;object-fit:cover;border-radius:3px;border:1px solid var(--rule);flex:0 0 auto}
 .prompt .pf{flex:1;min-width:0}
@@ -256,11 +282,14 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 </head>
 <body>
 
-<div class="bar">
-  <h1 class="mark">Proof <span>Press</span></h1>
-  <div class="meta" id="meta">no shots yet</div>
-  <div class="spacer"></div>
-  <button class="btn small ghost" id="themeToggle" title="Switch appearance">Appearance</button>
+<div class="topdock">
+  <div class="bar">
+    <h1 class="mark">Proof <span>Press</span></h1>
+    <div class="meta" id="meta">no shots yet</div>
+    <div class="spacer"></div>
+    <button class="btn small ghost" id="themeToggle" title="Switch appearance">Appearance</button>
+  </div>
+  <div class="peek" id="peek" aria-label="Live proofs"></div>
 </div>
 
 <div class="wrap">
@@ -1105,6 +1134,60 @@ function renderAll(){
   fillShotSelect();
   paintAssets();
   renderChecklist();
+  renderPeek();
+}
+
+/* ============ live rail ============
+   The proofs sit below a tall stack of controls, so a colour or shape change
+   landed off screen. This mirrors them under the top bar while the real strip
+   is scrolled away. It is absolutely positioned, so showing it never reflows
+   the page underneath. */
+var peekOn = false;
+
+function renderPeek(){
+  var el = $("peek");
+  var show = peekOn && S.shots.length > 0;
+  el.classList.toggle("on", show);
+  if(!show){ el.innerHTML = ""; return; }
+
+  var d = dims();
+  el.innerHTML = "";
+  var lab = document.createElement("span");
+  lab.className = "plabel";
+  lab.textContent = "Live";
+  el.appendChild(lab);
+
+  S.shots.forEach(function(shot, i){
+    var cv = document.createElement("canvas");
+    var w = d.portrait ? 150 : 400;
+    cv.width = w; cv.height = Math.round(w * d.h / d.w);
+    if(i === S.sel) cv.className = "sel";
+    cv.title = "Proof " + (i+1) + (shot.head ? ": " + shot.head : "");
+    cv.onclick = function(){
+      S.sel = i;
+      syncSelection();
+      renderPeek();
+      var box = strip.children[i];
+      if(box) box.scrollIntoView({ block:"center", inline:"center", behavior:"smooth" });
+    };
+    el.appendChild(cv);
+
+    var ctx = cv.getContext("2d"), k = cv.width / d.w;
+    ctx.save();
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ctx.scale(k, k);
+    composePanel(ctx, i, d.w, d.h, d.portrait);
+    ctx.restore();
+  });
+}
+
+if("IntersectionObserver" in window){
+  new IntersectionObserver(function(entries){
+    var next = !entries[0].isIntersecting;
+    if(next === peekOn) return;
+    peekOn = next;
+    renderPeek();
+  }, { rootMargin: "-190px 0px 0px 0px" }).observe(strip);
 }
 
 function placeCaret(){

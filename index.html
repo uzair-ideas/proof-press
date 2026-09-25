@@ -185,6 +185,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .crow:first-child{border-top:0}
 .crow .nm{font-weight:600;font-size:14px;min-width:178px}
 .crow .sp{font-size:13px;color:var(--ink-soft);flex:1;min-width:170px}
+.szpick{border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink);padding:4px 6px;font-size:13px;max-width:100%}
 .crow .st{font-size:13px;min-width:104px}
 .crow .st.ok{color:var(--accent);font-weight:600}
 .crow .st.bad{color:var(--warn)}
@@ -607,20 +608,23 @@ var THEMES = [
 ];
 
 var SIZES = [
-  { id:"play-portrait", label:"Phone portrait \u00b7 1080 \u00d7 1920", w:1080, h:1920, store:"play" },
-  { id:"play-land",     label:"Phone landscape \u00b7 1920 \u00d7 1080", w:1920, h:1080, store:"play" },
-  { id:"ios-69",        label:"iPhone 6.9\" \u00b7 1290 \u00d7 2796", w:1290, h:2796, store:"ios" },
-  { id:"ios-69b",       label:"iPhone 6.9\" \u00b7 1320 \u00d7 2868", w:1320, h:2868, store:"ios" },
-  { id:"ios-65",        label:"iPhone 6.5\" \u00b7 1242 \u00d7 2688", w:1242, h:2688, store:"ios" },
-  { id:"ios-55",        label:"iPhone 5.5\" \u00b7 1242 \u00d7 2208", w:1242, h:2208, store:"ios" },
-  { id:"ipad-13",       label:"iPad 13\" \u00b7 2048 \u00d7 2732", w:2048, h:2732, store:"ios" },
-  { id:"ipad-11",       label:"iPad 11\" \u00b7 1668 \u00d7 2388", w:1668, h:2388, store:"ios" }
+  { id:"play-portrait", label:"Phone portrait \u00b7 1080 \u00d7 1920", w:1080, h:1920, store:"play", dev:"play",   dir:"portrait" },
+  { id:"play-land",     label:"Phone landscape \u00b7 1920 \u00d7 1080", w:1920, h:1080, store:"play", dev:"play",   dir:"landscape" },
+  { id:"ios-69",        label:"iPhone 6.9\" \u00b7 1290 \u00d7 2796", w:1290, h:2796, store:"ios",  dev:"iphone", dir:"iphone-6.9" },
+  { id:"ios-69b",       label:"iPhone 6.9\" \u00b7 1320 \u00d7 2868", w:1320, h:2868, store:"ios",  dev:"iphone", dir:"iphone-6.9-1320" },
+  { id:"ios-65",        label:"iPhone 6.5\" \u00b7 1242 \u00d7 2688", w:1242, h:2688, store:"ios",  dev:"iphone", dir:"iphone-6.5" },
+  { id:"ios-55",        label:"iPhone 5.5\" \u00b7 1242 \u00d7 2208", w:1242, h:2208, store:"ios",  dev:"iphone", dir:"iphone-5.5" },
+  { id:"ipad-13",       label:"iPad 13\" \u00b7 2048 \u00d7 2732", w:2048, h:2732, store:"ios",  dev:"ipad",   dir:"ipad-13" },
+  { id:"ipad-11",       label:"iPad 11\" \u00b7 1668 \u00d7 2388", w:1668, h:2388, store:"ios",  dev:"ipad",   dir:"ipad-11" }
 ];
+function sizeById(id){ return SIZES.filter(function(z){ return z.id === id; })[0]; }
 
 var S = {
   theme:THEMES[0].id, c1:THEMES[0].c1, c2:THEMES[0].c2, ang:THEMES[0].ang, decorColor:THEMES[0].decor,
   decor:"card", decorPos:0.62, decorScale:1, fgMode:"auto", themeFg:"light",
   frame:"dark", font:"Archivo", size:"play-portrait",
+  // the size each checklist row and the ZIP export at, per device class
+  pick:{ play:"play-portrait", iphone:"ios-69", ipad:"ipad-13" },
   mode:"separate", seams:true, bgScope:"all", platform:"both",
   shots:[], sel:0
 };
@@ -1494,7 +1498,11 @@ bindSeg("font",  function(v){ S.font = v; ensureFonts().then(renderAll); });
     $(z.store === "ios" ? "grpIos" : "grpPlay").appendChild(o);
   });
   sel.value = S.size;
-  sel.onchange = function(){ S.size = this.value; renderAll(); };
+  sel.onchange = function(){
+    S.size = this.value;
+    S.pick[sizeById(this.value).dev] = this.value;
+    renderAll();
+  };
 })();
 bindSeg("layout",function(v){
   var sel = S.shots[S.sel]; if(!sel) return;
@@ -1938,10 +1946,10 @@ function iconReady(){ return !!(ICON.img || ICON.bg !== "none"); }
 function checklistRows(){
   var n = S.shots.length, rows = [];
   if(wants("play")){
-    rows.push({ store:"play", nm:"Phone screenshots", sp:"1080 \u00d7 1920 \u00b7 2 to 8 files",
+    rows.push({ store:"play", nm:"Phone screenshots", dev:"play", sp:"2 to 8 files",
       ok: n >= 2 && n <= 8,
       st: n < 2 ? "Need " + (2-n) + " more" : (n > 8 ? "Remove " + (n-8) : n + " ready"),
-      act: function(){ exportAt("play-portrait"); } });
+      act: function(){ exportAt(S.pick.play); } });
     rows.push({ store:"play", nm:"App icon", sp:"512 \u00d7 512 PNG, under 1 MB",
       ok: iconReady(), st: iconReady() ? "Ready" : "Add a logo",
       act: function(){ exportIcon(512); } });
@@ -1950,13 +1958,13 @@ function checklistRows(){
       act: exportFeature });
   }
   if(wants("ios")){
-    rows.push({ store:"ios", nm:"iPhone 6.9\" screenshots", sp:"1290 \u00d7 2796 \u00b7 1 to 10 files",
+    rows.push({ store:"ios", nm:"iPhone screenshots", dev:"iphone", sp:"1 to 10 files",
       ok: n >= 1 && n <= 10,
       st: n < 1 ? "Add a shot" : (n > 10 ? "Remove " + (n-10) : n + " ready"),
-      act: function(){ exportAt("ios-69"); } });
-    rows.push({ store:"ios", nm:"iPad 13\" screenshots", sp:"2048 \u00d7 2732 \u00b7 only if you ship for iPad",
+      act: function(){ exportAt(S.pick.iphone); } });
+    rows.push({ store:"ios", nm:"iPad screenshots", dev:"ipad", sp:"only if you ship for iPad",
       ok: n >= 1, st: n >= 1 ? "Optional" : "Add a shot",
-      act: function(){ exportAt("ipad-13"); } });
+      act: function(){ exportAt(S.pick.ipad); } });
     rows.push({ store:"ios", nm:"App icon", sp:"1024 \u00d7 1024 PNG, no transparency",
       ok: iconReady() && ICON.bg !== "none",
       st: !iconReady() ? "Add a logo" : (ICON.bg === "none" ? "Needs a background" : "Ready"),
@@ -1983,7 +1991,23 @@ function renderChecklist(){
     row.appendChild(nm);
 
     var sp = document.createElement("span");
-    sp.className = "sp"; sp.textContent = r.sp;
+    sp.className = "sp";
+    if(r.dev){
+      var pick = document.createElement("select");
+      pick.className = "szpick";
+      pick.setAttribute("aria-label", r.nm + " size");
+      SIZES.filter(function(z){ return z.dev === r.dev; }).forEach(function(z){
+        var o = document.createElement("option");
+        o.value = z.id; o.textContent = z.label;
+        pick.appendChild(o);
+      });
+      pick.value = S.pick[r.dev];
+      pick.onchange = function(){ S.pick[r.dev] = this.value; };
+      sp.appendChild(pick);
+      sp.appendChild(document.createTextNode(" · " + r.sp));
+    } else {
+      sp.textContent = r.sp;
+    }
     row.appendChild(sp);
 
     var st = document.createElement("span");
@@ -2042,6 +2066,7 @@ function blobBytes(b){ return b.arrayBuffer().then(function(ab){ return new Uint
 function exportAt(sizeId){
   if(!S.shots.length) return;
   S.size = sizeId;
+  S.pick[sizeById(sizeId).dev] = sizeId;
   $("sizePick").value = sizeId;
   renderAll();
   $("dlAll").click();
@@ -2076,10 +2101,11 @@ function downloadBundle(){
   var jobs = [];
 
   if(wants("play")){
+    var playZ = sizeById(S.pick.play);
     S.shots.forEach(function(sh,i){
       jobs.push({ note:"Play screenshot " + (i+1), run:function(){
-        return pngAt("play-portrait", i).then(blobBytes).then(function(u){
-          files.push({ name:"google-play/screenshots/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
+        return pngAt(playZ.id, i).then(blobBytes).then(function(u){
+          files.push({ name:"google-play/screenshots-" + playZ.dir + "/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
         });
       }});
     });
@@ -2091,10 +2117,11 @@ function downloadBundle(){
     }});
   }
   if(wants("ios")){
+    var iosZ = sizeById(S.pick.iphone);
     S.shots.forEach(function(sh,i){
       jobs.push({ note:"iPhone screenshot " + (i+1), run:function(){
-        return pngAt("ios-69", i).then(blobBytes).then(function(u){
-          files.push({ name:"app-store/iphone-6.9/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
+        return pngAt(iosZ.id, i).then(blobBytes).then(function(u){
+          files.push({ name:"app-store/" + iosZ.dir + "/screenshot-" + String(i+1).padStart(2,"0") + ".png", data:u });
         });
       }});
     });

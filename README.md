@@ -17,6 +17,8 @@ Drop the plain shots straight off a phone, emulator or simulator. Pick a backgro
 
 Pick **Google Play**, **App Store** or **Both** at the top of the page. The output sizes, the icon size and the checklist all follow that choice, and "Download everything as one ZIP" lays the files out in `google-play/` and `app-store/` folders.
 
+Each screenshot row in **What the stores need** has its own size picker — Play portrait or landscape, iPhone 6.9″ / 6.5″ / 5.5″, iPad 13″ / 11″. **Build** and the one-ZIP download both use the size picked there, and the ZIP names the folder after it (`app-store/iphone-6.5/`). Picking a size in **Output size** updates the matching row too.
+
 ## How to use it
 
 1. Drop your screenshots on the page, or use **Choose files** — you can also paste with `Ctrl+V`.

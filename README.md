@@ -12,13 +12,13 @@ Drop the plain shots straight off a phone, emulator or simulator. Pick a backgro
 |---|---|---|
 | Phone screenshots | 1080 × 1920 portrait, 1920 × 1080 landscape · 2–8 files | iPhone 6.9″ 1290 × 2796 and 1320 × 2868, 6.5″ 1242 × 2688, 5.5″ 1242 × 2208, 6.3″ 1206 × 2622, 6.1″ 1179 × 2556 (portrait or landscape), iPhone wide 1398 × 2034 and 2007 × 2853 (portrait or landscape) · 1–10 files |
 | Tablet screenshots | — | iPad 13″ 2048 × 2732 and 2064 × 2752 (portrait or landscape), iPad 11″ 1668 × 2388 |
-| App icon | 512 × 512 | 1024 × 1024, no transparency |
+| App icon | 512 × 512 | not uploaded — the App Store reads it from your app build |
 | Feature graphic | 1024 × 500 | not required |
 | Product page header | — | 3840 × 1646, optional |
 | Search results asset | — | 3840 × 2560, optional |
 | Universal creative asset | — | 5244 × 2950 (16:9), optional — Apple can use it for both the header and search results |
 
-Pick **Google Play**, **App Store** or **Both** at the top of the page. The output sizes, the icon size and the checklist all follow that choice, and "Download everything as one ZIP" lays the files out in `google-play/` and `app-store/` folders.
+Pick **Google Play**, **App Store** or **Both** at the top of the page. The output sizes, the checklist and the Store assets cards all follow that choice — Play shows the icon and feature graphic, the App Store shows the header, search results and universal art (with the icon card reduced to a logo picker for that art), and "Download everything as one ZIP" lays the files out in `google-play/` and `app-store/` folders.
 
 Each screenshot row in **What the stores need** has its own size picker — Play portrait or landscape, every iPhone, iPhone Duo and iPad size, each in portrait or landscape. iPhone starts on the required 1179 × 2556 and iPad on the required 2064 × 2752. **Build** and the one-ZIP download both use the size picked there, and the ZIP names the folder after it (`app-store/iphone-6.5/`). Picking a size in **Output size** updates the matching row too.
 
@@ -38,21 +38,22 @@ While you work the controls, a **live rail** pins the proofs under the top bar s
 - 8 background themes plus a free colour picker and gradient angle
 - Backdrop shapes: card, arcs, dots, band, none — with position, size and colour. A picked shape colour stays put through theme and palette changes until you press **Auto**
 - Device frame: dark, light, or bare (no frame)
-- Headline font: Archivo, Bricolage Grotesque, Space Grotesk, Instrument Serif
-- Text colour: auto, light, dark
+- Headline font: Archivo, Bricolage Grotesque, Space Grotesk, Instrument Serif, Poppins, Montserrat, Inter, Playfair Display, DM Serif Display, Bebas Neue, Caveat
+- Text colour: auto, light, dark, or any custom colour
 - **One long image** mode paints one background across the whole set and slices it, so the screenshots read as a single picture when scrolled. Upload in the numbered order or the picture breaks.
 
 **Per shot**
 - Headline and supporting line
 - Layout: text above, below, tilted, floating, or none
-- Title position (6 anchors), alignment, text size and angle
-- Phone size, offset, rotation — drag the corner handles directly on the selected proof
-- **Split this phone across 2 panels**, so one device spans two screenshots
+- Font and text colour, each defaulting to the set's
+- Everything else is done with the mouse on the selected proof: drag the words or the phone, pull a corner to resize, turn the round grip to rotate, double-click to put it back
+- Split one phone across two panels from **Split** in Auto layout
 
 **Store assets**
 - App Store product page header, search results asset and universal creative asset, at the sizes in Apple's templates. Each has its own headline, layout (including **Phones**, which shows up to three screenshots side by side), backdrop shape and shape colour, and goes into `app-store/` in the one-ZIP download. Apple asks for one clear idea, logo and words near the centre, and nothing unsuitable for a 4+ rating — no prices, discounts, URLs or awards
-- App icon from your logo, with a gradient/solid/logo-only backdrop and a corner guide showing what the stores round off. Click the empty square to choose a logo, double-click to swap it
-- Feature graphic with four layouts (icon left, centred, phone right, phones) and the same backdrop shapes, plus its own shape colour. It keeps the Store assets colours while you edit it
+- Play app icon from your logo, with a gradient/solid/logo-only backdrop and a corner guide showing what Play rounds off. Click the empty square to choose a logo, double-click to swap it
+- Feature graphic with four layouts (icon left, centred, phone right, phones)
+- On every wide asset the words can be dragged, resized from a corner and rotated from the grip, just like the proofs, and the icon or phones can be dragged and sized. Each has its own font and text colour and the same backdrop shapes, plus its own shape colour. It keeps the Store assets colours while you edit it
 
 ## Privacy
 

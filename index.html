@@ -6,7 +6,7 @@
 <title>Proof Press — store screenshots from raw shots</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Instrument+Serif:ital@0;1&family=Space+Grotesk:wght@400;500;700&family=Poppins:wght@800&family=Montserrat:wght@800&family=Inter:wght@800&family=Playfair+Display:wght@800&family=DM+Serif+Display&family=Bebas+Neue&family=Caveat:wght@700&display=swap" rel="stylesheet">
 <style>
 :root{
   --paper:#E6E7E1;
@@ -201,6 +201,10 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .assetcard{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:16px}
 .assetcard h3{margin:0 0 12px;font-size:12px;font-weight:700;color:var(--ink-soft)}
 .assetcard canvas{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:3px;background:var(--paper)}
+.assetcard canvas.bn{cursor:move;touch-action:none}
+.fontsel{border:1px solid var(--rule);border-radius:3px;background:var(--paper);color:var(--ink);padding:6px 8px;font-size:13px;max-width:100%}
+#fontPick{width:100%}
+.colauto[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .assetcard canvas.icon{cursor:pointer}
 .assetcard canvas.icon.has{cursor:move}
 .assetcard input[type=text]{
@@ -234,8 +238,6 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .hint{font-size:12px;color:var(--ink-soft);margin:12px 0 0}
 #joined{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:3px;margin-bottom:22px}
 #seamToggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-#spanToggle[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-#spanRow input[type=range]{max-width:120px}
 .shot .tools{display:flex;gap:4px;margin-top:8px;align-items:center}
 .shot .idx{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums;margin-right:auto}
 .shot .tools button{
@@ -380,6 +382,9 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           <button data-v="light" aria-pressed="false">Light</button>
           <button data-v="dark" aria-pressed="false">Dark</button>
         </div>
+        <div class="row">
+          <label for="fgCol">Custom</label><input type="color" id="fgCol" value="#FFFFFF">
+        </div>
       </div>
 
       <div class="ctrl">
@@ -390,12 +395,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           <button data-v="none" aria-pressed="false">Bare</button>
         </div>
         <h3 style="margin-top:16px">Headline font</h3>
-        <div class="seg" id="font">
-          <button data-v="Archivo" aria-pressed="true">Archivo</button>
-          <button data-v="Bricolage Grotesque" aria-pressed="false">Bricolage</button>
-          <button data-v="Space Grotesk" aria-pressed="false">Grotesk</button>
-          <button data-v="Instrument Serif" aria-pressed="false">Serif</button>
-        </div>
+        <select id="fontPick" class="fontsel" aria-label="Headline font"></select>
       </div>
 
       <div class="ctrl">
@@ -471,53 +471,16 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
         <button data-v="float" aria-pressed="false">Floating</button>
         <button data-v="plain" aria-pressed="false">No text</button>
       </div>
-      <h3 style="margin-top:18px">Title position</h3>
-      <div class="seg" id="place">
-        <button data-v="tl">Top left</button>
-        <button data-v="tc">Top centre</button>
-        <button data-v="tr">Top right</button>
-        <button data-v="bl">Bottom left</button>
-        <button data-v="bc">Bottom centre</button>
-        <button data-v="br">Bottom right</button>
-      </div>
-      <div class="seg" id="align" style="margin-top:8px">
-        <button data-v="left" aria-pressed="false">Align left</button>
-        <button data-v="center" aria-pressed="true">Centre</button>
-        <button data-v="right" aria-pressed="false">Align right</button>
+      <div class="row" style="margin-top:14px">
+        <label for="shotFont">Font</label>
+        <select id="shotFont" class="fontsel"></select>
       </div>
       <div class="row">
-        <label for="tsize">Text size</label>
-        <input type="range" id="tsize" min="40" max="250" step="1" value="100">
-        <button class="btn small ghost" id="posReset">Reset position</button>
+        <label for="shotCol">Text colour</label>
+        <input type="color" id="shotCol">
+        <button class="btn small ghost colauto" id="shotColReset" aria-pressed="true">Same as the set</button>
       </div>
-      <div class="row">
-        <label for="scale">Phone size</label>
-        <input type="range" id="scale" min="40" max="220" step="1" value="100">
-      </div>
-      <div class="row">
-        <label for="dy">Phone up/down</label>
-        <input type="range" id="dy" min="-30" max="30" step="1" value="0">
-      </div>
-      <div class="row" id="slideRow">
-        <label for="dx">Phone left/right</label>
-        <input type="range" id="dx" min="-70" max="70" step="1" value="0">
-        <button class="btn small ghost" id="dxReset">Centre phone</button>
-      </div>
-      <div class="row">
-        <label for="rot">Phone angle</label>
-        <input type="range" id="rot" min="-180" max="180" step="1" value="0">
-        <button class="btn small ghost" id="rotReset">0°</button>
-      </div>
-      <div class="row">
-        <label for="trot">Text angle</label>
-        <input type="range" id="trot" min="-180" max="180" step="1" value="0">
-        <button class="btn small ghost" id="trotReset">0°</button>
-      </div>
-      <div class="row" id="spanRow">
-        <label>Split</label>
-        <button class="btn small ghost" id="spanToggle" aria-pressed="false">Split this phone across 2 panels</button>
-      </div>
-      <p class="hint" id="dragHint">On the selected proof, the phone and the headline each get four square corners for resizing and a round grip above for rotating to any angle. Drag inside the dashed box to move the text, drag anywhere else to move the phone. A phone pushed past the edge is cut at that edge; to carry it into the next panel, split it.</p>
+      <p class="hint" id="dragHint">Everything else is done with the mouse on the selected proof: drag inside the dashed box to move the text, drag anywhere else to move the phone, pull a corner square to resize, and turn the round grip to rotate. Double-click the words or the phone to put it back where it started. To carry one phone across two panels, use Split in Auto layout.</p>
       <button class="btn small ghost applyall" id="applyLayout">Use this layout for every shot</button>
     </div>
 
@@ -531,7 +494,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 
   <section class="assets" id="assets">
     <h2>Store assets</h2>
-    <p class="autonote">The other images a listing needs: an app icon for both stores, and a feature graphic for Google Play. They reuse the colours, backdrop shape and font from above, so the listing reads as one set.</p>
+    <p class="autonote" id="assetsNote"></p>
     <div class="autorow">
       <label for="bc1">Colours</label>
       <input type="color" id="bc1"><input type="color" id="bc2">
@@ -541,8 +504,8 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
     </div>
 
     <div class="assetgrid">
-      <div class="assetcard">
-        <h3 id="iconHead">App icon &middot; 512 &times; 512</h3>
+      <div class="assetcard" id="iconCard">
+        <h3 id="iconHead">App icon &middot; 512 &times; 512 &middot; Google Play</h3>
         <canvas id="iconCv" width="512" height="512" class="icon"></canvas>
         <div class="autorow">
           <button class="btn small ghost" id="iconPick">Choose logo</button>
@@ -557,11 +520,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           </div>
           <button class="btn small ghost" id="iconGuide" aria-pressed="true">Corner guide</button>
         </div>
-        <div class="seg" id="iconSize" style="margin-top:10px">
-          <button data-v="512" aria-pressed="true">Play 512</button>
-          <button data-v="1024" aria-pressed="false">App Store 1024</button>
-        </div>
-        <p class="hint">Click the square to choose a logo; double-click it later to swap. Drag the logo to reposition it. Both stores round the corners, so keep the mark inside the dashed shape. Play takes 512 × 512; the App Store takes 1024 × 1024 with no transparency. The guide is not exported.</p>
+        <p class="hint" id="iconHint"></p>
         <button class="btn solid" id="iconDl">Download icon PNG &middot; 512 px</button>
       </div>
 
@@ -610,7 +569,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
     <p class="status" id="assetStatus"></p>
   </section>
 
-  <p class="foot" id="foot">Google Play accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px, plus a 512 × 512 icon and a 1024 × 500 feature graphic. The App Store takes 1–10 screenshots per device size — 1179 × 2556 for the 6.1″/6.3″ iPhone and 2064 × 2752 for the 13″ iPad are the required sets, and every other iPhone, iPhone Duo and iPad size App Store Connect lists is here too, in portrait or landscape — and a 1024 × 1024 icon with no transparency. Every size offered here sits inside those rules. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks.</p>
+  <p class="foot" id="foot">Google Play accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px, plus a 512 × 512 icon and a 1024 × 500 feature graphic. The App Store takes 1–10 screenshots per device size — 1179 × 2556 for the 6.1″/6.3″ iPhone and 2064 × 2752 for the 13″ iPad are the required sets, and every other iPhone, iPhone Duo and iPad size App Store Connect lists is here too, in portrait or landscape — and reads the app icon from your build, so there is no icon to upload there. Every size offered here sits inside those rules. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks.</p>
 </div>
 
 <input type="file" id="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
@@ -671,7 +630,7 @@ function sizeById(id){ return SIZES.filter(function(z){ return z.id === id; })[0
 
 var S = {
   theme:THEMES[0].id, c1:THEMES[0].c1, c2:THEMES[0].c2, ang:THEMES[0].ang, decorColor:THEMES[0].decor,
-  decor:"card", decorPos:0.62, decorScale:1, fgMode:"auto", themeFg:"light",
+  decor:"card", decorPos:0.62, decorScale:1, fgMode:"auto", fgCustom:"#FFFFFF", themeFg:"light",
   frame:"dark", font:"Archivo", size:"play-portrait",
   // the size each checklist row and the ZIP export at, per device class
   pick:{ play:"play-portrait", iphone:"ios-61", iphoneduo:"iosw-s", ipad:"ipad-13b" },
@@ -684,15 +643,41 @@ var $ = function(id){ return document.getElementById(id); };
 var strip = $("strip");
 
 /* ============ fonts for canvas ============ */
+// weight each face is drawn in, and the headline size that reads the same
+// across faces (a condensed or script face needs more pixels to match)
+var FONTS = [
+  { v:"Archivo",             w:"800", base:78 },
+  { v:"Bricolage Grotesque", w:"800", base:78 },
+  { v:"Space Grotesk",       w:"700", base:78 },
+  { v:"Instrument Serif",    w:"400", base:92 },
+  { v:"Poppins",             w:"800", base:72 },
+  { v:"Montserrat",          w:"800", base:72 },
+  { v:"Inter",               w:"800", base:76 },
+  { v:"Playfair Display",    w:"800", base:80 },
+  { v:"DM Serif Display",    w:"400", base:86 },
+  { v:"Bebas Neue",          w:"400", base:104 },
+  { v:"Caveat",              w:"700", base:100 }
+];
+function fontInfo(f){
+  for(var i=0;i<FONTS.length;i++) if(FONTS[i].v === f) return FONTS[i];
+  return FONTS[0];
+}
+function fillFontSelect(sel, sameLabel){
+  if(sameLabel){
+    var o0 = document.createElement("option");
+    o0.value = ""; o0.textContent = sameLabel;
+    sel.appendChild(o0);
+  }
+  FONTS.forEach(function(f){
+    var o = document.createElement("option");
+    o.value = f.v; o.textContent = f.v; o.style.fontFamily = '"' + f.v + '"';
+    sel.appendChild(o);
+  });
+}
 var fontsReady = false;
 function ensureFonts(){
   if(fontsReady) return Promise.resolve();
-  var want = [
-    '800 80px "Archivo"','500 40px "Archivo"',
-    '800 80px "Bricolage Grotesque"','400 40px "Bricolage Grotesque"',
-    '700 80px "Space Grotesk"','400 40px "Space Grotesk"',
-    '400 80px "Instrument Serif"'
-  ];
+  var want = FONTS.map(function(f){ return f.w + ' 80px "' + f.v + '"'; }).concat(['500 40px "Archivo"']);
   var jobs = want.map(function(f){
     try { return document.fonts.load(f); } catch(e){ return Promise.resolve(); }
   });
@@ -726,11 +711,17 @@ function wrap(ctx,text,maxW){
   if(cur) lines.push(cur);
   return lines;
 }
+function hexA(hex, a){
+  var n = parseInt(hex.slice(1), 16);
+  return "rgba(" + ((n>>16)&255) + "," + ((n>>8)&255) + "," + (n&255) + "," + a + ")";
+}
 function fgColor(){
+  if(S.fgMode === "custom") return S.fgCustom;
   var mode = S.fgMode === "auto" ? S.themeFg : S.fgMode;
   return mode === "dark" ? "#14161A" : "#FFFFFF";
 }
 function fgAlpha(a){
+  if(S.fgMode === "custom") return hexA(S.fgCustom, a);
   var mode = S.fgMode === "auto" ? S.themeFg : S.fgMode;
   return mode === "dark" ? "rgba(20,22,26,"+a+")" : "rgba(255,255,255,"+a+")";
 }
@@ -819,9 +810,10 @@ function drawDevice(ctx,img,x,y,w,h){
 function drawText(ctx, shot, ax, topY, W, align){
   if(!shot.head && !shot.sub) return null;
   var maxW = W*0.84;
-  var fam = '"'+S.font+'"';
-  var weight = S.font === "Instrument Serif" ? "400" : (S.font === "Space Grotesk" ? "700" : "800");
-  var base = S.font === "Instrument Serif" ? 92 : 78;
+  var face = shot.font || S.font, fi = fontInfo(face);
+  var fam = '"'+face+'"';
+  var weight = fi.w;
+  var base = fi.base;
   var size = base * (shot.tsize || 1);
   var lines = [];
   if(shot.head){
@@ -847,11 +839,11 @@ function drawText(ctx, shot, ax, topY, W, align){
   ctx.textBaseline = "alphabetic";
   var y = topY + size*0.86;
   ctx.font = weight+" "+size+"px "+fam;
-  ctx.fillStyle = fgColor();
+  ctx.fillStyle = shot.color || fgColor();
   for(i=0;i<lines.length;i++){ ctx.fillText(lines[i], ax, y); y += size*1.1; }
   if(sl.length){
     ctx.font = "500 "+ss+'px "Archivo"';
-    ctx.fillStyle = fgAlpha(.78);
+    ctx.fillStyle = shot.color ? hexA(shot.color, .78) : fgAlpha(.78);
     y += ss*0.5;
     for(i=0;i<sl.length;i++){ y += ss*1.05; ctx.fillText(sl[i], ax, y); }
   }
@@ -1144,6 +1136,7 @@ function renderAll(){
     cv.addEventListener("pointermove", onCanvasMove);
     cv.addEventListener("pointerup", onCanvasUp);
     cv.addEventListener("pointercancel", onCanvasUp);
+    cv.addEventListener("dblclick", onCanvasReset);
     box.appendChild(cv);
 
     var tools = document.createElement("div");
@@ -1273,18 +1266,10 @@ function syncSelection(){
       : "Everything here changes this one proof.";
     $("head").value = sel.head || "";
     $("sub").value = sel.sub || "";
-    $("dx").value = Math.round((sel.dx || 0) * 100);
-    $("tsize").value = Math.round((sel.tsize || 1) * 100);
-    $("scale").value = Math.round((sel.scale || 1) * 100);
-    $("dy").value = Math.round((sel.dy || 0) * 100);
-    $("rot").value = Math.round(devRot(sel));
-    $("trot").value = Math.round(sel.trot || 0);
-    $("spanToggle").setAttribute("aria-pressed", String(!!sel.span));
+    $("shotFont").value = sel.font || "";
+    $("shotCol").value = sel.color || fgColor();
+    $("shotColReset").setAttribute("aria-pressed", String(!sel.color));
     setSeg("layout", sel.layout);
-    setSeg("align", alignOf(sel));
-    $("spanToggle").textContent = sel.span
-      ? "Undo the split"
-      : "Split this phone across 2 panels";
   }
   revealSelected();
   placeCaret();
@@ -1428,18 +1413,16 @@ function onCanvasMove(e){
     while(a > 180) a -= 360;
     while(a < -180) a += 360;
     a = snapAngle(a);
-    if(drag.what === "trot"){ shot.trot = a; $("trot").value = Math.round(a); }
-    else { shot.rot = a; $("rot").value = Math.round(a); }
+    if(drag.what === "trot") shot.trot = a;
+    else shot.rot = a;
     drag.snapX = null; drag.snapY = null;
   } else if(drag.what === "tscale"){
     var td = Math.hypot(p.x - drag.cx, p.y - drag.cy);
     shot.tsize = Math.max(0.4, Math.min(2.5, drag.s0 * td/drag.d0));
-    $("tsize").value = Math.round(shot.tsize*100);
     drag.snapX = null; drag.snapY = null;
   } else if(drag.what === "scale"){
     var dist = Math.hypot(p.x - drag.cx, p.y - drag.cy);
     shot.scale = Math.max(0.4, Math.min(2.2, drag.s0 * dist/drag.d0));
-    $("scale").value = Math.round(shot.scale*100);
     drag.snapX = null; drag.snapY = null;
   } else if(drag.what === "text"){
     var rawX = Math.max(-0.15, Math.min(1.15, (p.x - drag.gx)/p.d.w));
@@ -1456,11 +1439,21 @@ function onCanvasMove(e){
     shot.dy = zy == null ? dyr : 0;
     drag.snapX = zx == null ? null : 0.5;
     drag.snapY = zy == null ? null : 0.5;
-    $("dx").value = Math.round(shot.dx*100);
-    $("dy").value = Math.round(shot.dy*100);
   }
   repaintSel();
   e.preventDefault();
+}
+// stands in for the removed reset buttons: double-click the words to put them
+// back where the layout wants them, anywhere else to re-centre the phone
+function onCanvasReset(e){
+  var i = +this.dataset.i, shot = S.shots[i];
+  if(!shot) return;
+  if(inBox(shot, canvasPoint(this, e))){
+    shot.tx = null; shot.ty = null; shot.align = null; shot.tsize = 1; shot.trot = 0;
+  } else {
+    shot.dx = 0; shot.dy = 0; shot.scale = 1; shot.rot = null;
+  }
+  repaintSel();
 }
 function onCanvasUp(e){
   if(drag){
@@ -1551,8 +1544,29 @@ $("decorAuto").onclick = function(){ S.decorCustom = null; renderAll(); };
 
 bindSeg("decor", function(v){ S.decor = v; renderAll(); });
 bindSeg("fg",    function(v){ S.fgMode = v; renderAll(); });
+$("fgCol").oninput = function(e){ S.fgCustom = e.target.value; S.fgMode = "custom"; setSeg("fg", "custom"); renderAll(); };
 bindSeg("frame", function(v){ S.frame = v; renderAll(); });
-bindSeg("font",  function(v){ S.font = v; ensureFonts().then(renderAll); });
+fillFontSelect($("fontPick"));
+$("fontPick").value = S.font;
+$("fontPick").onchange = function(){ S.font = this.value; ensureFonts().then(renderAll); };
+fillFontSelect($("shotFont"), "Same as the set");
+$("shotFont").onchange = function(){
+  var sel = S.shots[S.sel]; if(!sel) return;
+  sel.font = this.value || null;
+  ensureFonts().then(repaintSel);
+};
+$("shotCol").oninput = function(e){
+  var sel = S.shots[S.sel]; if(!sel) return;
+  sel.color = e.target.value;
+  $("shotColReset").setAttribute("aria-pressed", "false");
+  repaintSel();
+};
+$("shotColReset").onclick = function(){
+  var sel = S.shots[S.sel]; if(!sel) return;
+  sel.color = null; this.setAttribute("aria-pressed", "true");
+  $("shotCol").value = fgColor();
+  repaintSel();
+};
 (function(){
   var sel = $("sizePick");
   SIZES.forEach(function(z){
@@ -1575,18 +1589,6 @@ bindSeg("layout",function(v){
 bindSeg("mode",  function(v){ S.mode = v; renderAll(); });
 bindSeg("bgScope", function(v){ S.bgScope = v; renderAll(); });
 
-$("dx").oninput = function(e){
-  if(!S.shots[S.sel]) return;
-  S.shots[S.sel].dx = (+e.target.value)/100;
-  repaintSel();
-};
-$("dxReset").onclick = function(){
-  var sel = S.shots[S.sel]; if(!sel) return;
-  sel.dx = 0; sel.dy = 0;
-  $("dx").value = 0; $("dy").value = 0;
-  repaintSel();
-};
-bindSeg("align", function(v){ if(S.shots[S.sel]){ S.shots[S.sel].align = v; repaintSel(); } });
 var PLACE = {
   tl:{tx:MARGIN,     ty:0.07, align:"left"},
   tc:{tx:0.5,        ty:0.07, align:"center"},
@@ -1595,38 +1597,6 @@ var PLACE = {
   bc:{tx:0.5,        ty:0.78, align:"center"},
   br:{tx:1-MARGIN,   ty:0.78, align:"right"}
 };
-bindSeg("place", function(v){
-  var sel = S.shots[S.sel], pl = PLACE[v];
-  if(!sel || !pl) return;
-  sel.tx = pl.tx; sel.ty = pl.ty; sel.align = pl.align;
-  setSeg("align", pl.align);
-  repaintSel();
-});
-$("tsize").oninput = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].tsize = (+e.target.value)/100; repaintSel(); } };
-$("scale").oninput = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].scale = (+e.target.value)/100; repaintSel(); } };
-$("rot").oninput   = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].rot = +e.target.value; repaintSel(); } };
-$("trot").oninput  = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].trot = +e.target.value; repaintSel(); } };
-$("rotReset").onclick  = function(){ var x=S.shots[S.sel]; if(!x) return; x.rot = null; $("rot").value = devRot(x); repaintSel(); };
-$("trotReset").onclick = function(){ var x=S.shots[S.sel]; if(!x) return; x.trot = 0; $("trot").value = 0; repaintSel(); };
-$("dy").oninput    = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].dy = (+e.target.value)/100; repaintSel(); } };
-$("posReset").onclick = function(){
-  var sel = S.shots[S.sel]; if(!sel) return;
-  sel.tx = null; sel.ty = null; sel.align = null; sel.tsize = 1; sel.trot = 0;
-  syncSelection(); repaintSel();
-};
-$("spanToggle").onclick = function(){
-  var sel = S.shots[S.sel]; if(!sel) return;
-  if(sel.span){
-    sel.span = false;
-    var nxt = S.shots[S.sel+1];
-    if(nxt && nxt.cont) S.shots.splice(S.sel+1, 1);
-  } else {
-    if(S.mode !== "continuous"){ S.mode = "continuous"; setSeg("mode","continuous"); }
-    insertCont(S.sel);
-  }
-  renderAll();
-};
-
 $("head").oninput = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].head = e.target.value; repaintSel(); renderPrompts(); } };
 $("sub").oninput  = function(e){ if(S.shots[S.sel]){ S.shots[S.sel].sub  = e.target.value; repaintSel(); renderPrompts(); } };
 function repaintSel(){
@@ -2015,7 +1985,7 @@ function checklistRows(){
       act: function(){ exportAt(S.pick.play); } });
     rows.push({ store:"play", nm:"App icon", sp:"512 \u00d7 512 PNG, under 1 MB",
       ok: iconReady(), st: iconReady() ? "Ready" : "Add a logo",
-      act: function(){ exportIcon(512); } });
+      act: exportIcon });
     rows.push({ store:"play", nm:"Feature graphic", sp:"1024 \u00d7 500 PNG",
       ok: !!FEAT.head, st: FEAT.head ? "Ready" : "Add a headline",
       act: exportFeature });
@@ -2031,10 +2001,6 @@ function checklistRows(){
     rows.push({ store:"ios", nm:"iPad screenshots", dev:"ipad", sp:"only if you ship for iPad",
       ok: n >= 1, st: n >= 1 ? "Optional" : "Add a shot",
       act: function(){ exportAt(S.pick.ipad); } });
-    rows.push({ store:"ios", nm:"App icon", sp:"1024 \u00d7 1024 PNG, no transparency",
-      ok: iconReady() && ICON.bg !== "none",
-      st: !iconReady() ? "Add a logo" : (ICON.bg === "none" ? "Needs a background" : "Ready"),
-      act: function(){ exportIcon(1024); } });
     BANNERS.forEach(function(b){
       rows.push({ store:"ios", nm:b.title, sp:b.w + " × " + b.h + " PNG, optional",
         ok: !!b.cfg.head, st: b.cfg.head ? "Ready" : "Optional",
@@ -2112,14 +2078,23 @@ function applyPlatform(){
   refitSizePicker();
   $("featCard").style.display = wants("play") ? "" : "none";
   $("iosBannerWrap").style.display = wants("ios") ? "" : "none";
-  var both = S.platform === "both";
-  $("iconSize").style.display = both ? "" : "none";
-  if(!both){
-    ICON.size = S.platform === "ios" ? 1024 : 512;
-    setSeg("iconSize", String(ICON.size));
-  }
-  $("iconHead").innerHTML = "App icon &middot; " + ICON.size + " &times; " + ICON.size;
-  $("iconDl").innerHTML = "Download icon PNG &middot; " + ICON.size + " px";
+  // Play wants a 512 icon upload. The App Store reads the icon from the build,
+  // so on iOS alone the card only supplies the logo for the header and search art.
+  var play = wants("play");
+  $("iconHead").innerHTML = play ? "App icon &middot; 512 &times; 512 &middot; Google Play" : "Logo &middot; for the header and search art";
+  $("iconDl").style.display = play ? "" : "none";
+  $("iconGuide").style.display = play ? "" : "none";
+  if(!play && ICON.guide){ ICON.guide = false; $("iconGuide").setAttribute("aria-pressed", "false"); }
+  $("iconHint").textContent = play
+    ? "Click the square to choose a logo; double-click it later to swap. Drag the logo to reposition it. Play rounds the corners, so keep the mark inside the dashed shape. The guide is not exported."
+      + (wants("ios") ? " The App Store takes its icon from your app build, so there is nothing to upload there." : "")
+    : "Click the square to choose a logo; double-click to swap, drag to move. It is placed in the header, search results and universal art below. The App Store takes the app icon from your build, so no icon upload is needed.";
+  $("assetsNote").textContent = S.platform === "play"
+    ? "The other images a Play listing needs: a 512 × 512 app icon and a 1024 × 500 feature graphic. They reuse the colours, backdrop shape and font from above, so the listing reads as one set."
+    : (S.platform === "ios"
+      ? "The App Store's own artwork: a product page header, a search results image and a universal asset. The app icon comes from your build, so it is not here. They reuse the colours, backdrop shape and font from above."
+      : "The other images each listing needs. Google Play: a 512 × 512 app icon and a 1024 × 500 feature graphic. App Store: a product page header, a search results image and a universal asset; its app icon comes from your build. They reuse the colours, backdrop shape and font from above.");
+  paintIcon();
   renderChecklist();
 }
 
@@ -2143,13 +2118,7 @@ function exportAt(sizeId){
   renderAll();
   $("dlAll").click();
 }
-function exportIcon(px){
-  ICON.size = px;
-  setSeg("iconSize", String(px));
-  applyPlatform();
-  paintIcon();
-  $("iconDl").click();
-}
+function exportIcon(){ $("iconDl").click(); }
 function exportFeature(){ $("featDl").click(); }
 
 function iconBytes(px){
@@ -2197,9 +2166,6 @@ function downloadBundle(){
         });
       }});
     });
-    jobs.push({ note:"App Store icon", run:function(){
-      return iconBytes(1024).then(function(u){ files.push({ name:"app-store/app-icon-1024.png", data:u }); });
-    }});
     BANNERS.forEach(function(b){
       jobs.push({ note:b.title, run:function(){
         return bannerBytes(b).then(blobBytes).then(function(u){ files.push({ name:"app-store/" + b.file, data:u }); });
@@ -2426,7 +2392,7 @@ function drawFeature(ctx, W, H){ drawBanner(ctx, FEAT, W, H); }
 // Every wide asset (Play feature graphic, App Store header, search results,
 // universal) is laid out on a canvas 500 units tall and scaled to the output,
 // so one set of spacings fits 1024 x 500 and 5244 x 2950 alike.
-function drawBanner(ctx, cfg, outW, outH){
+function drawBanner(ctx, cfg, outW, outH, edit){
   var k = outH/500, W = outW/k, H = 500;
   ctx.save();
   ctx.scale(k, k);
@@ -2437,8 +2403,178 @@ function drawBanner(ctx, cfg, outW, outH){
   if(cfg.decorColor) S.decorCustom = cfg.decorColor;
   drawBackground(ctx, W, H, W);
   S.decor = keep.d; S.decorPos = keep.p; S.decorScale = keep.s; S.decorCustom = keep.c;
+  cfg._tbox = null;
   bannerBody(ctx, cfg, W, H);
+  if(edit) bannerHandles(ctx, cfg, W, H);
   ctx.restore();
+}
+
+// moves and scales the icon or phones around their own centre
+function bannerArt(ctx, cfg, px, py, fn){
+  ctx.save();
+  ctx.translate(px + (cfg.adx || 0), py + (cfg.ady || 0));
+  var k = cfg.ascale || 1;
+  ctx.scale(k, k);
+  ctx.translate(-px, -py);
+  fn();
+  ctx.restore();
+}
+
+function tboxPt(t, lx, ly){
+  var c = Math.cos(t.rot), sn = Math.sin(t.rot);
+  return { x: t.cx + lx*c - ly*sn, y: t.cy + lx*sn + ly*c };
+}
+function tboxCorners(t){
+  var hw = t.w/2 + 8, hh = t.h/2 + 8;
+  return [tboxPt(t,-hw,-hh), tboxPt(t,hw,-hh), tboxPt(t,hw,hh), tboxPt(t,-hw,hh)];
+}
+function tboxGrip(t){ return tboxPt(t, 0, -t.h/2 - 40); }
+
+function bannerHandles(ctx, cfg, W, H){
+  if(cfg._snapX != null){
+    ctx.save();
+    ctx.strokeStyle = "rgba(255,255,255,.85)"; ctx.lineWidth = 1.5; ctx.setLineDash([8,7]);
+    ctx.beginPath(); ctx.moveTo(cfg._snapX, 0); ctx.lineTo(cfg._snapX, H); ctx.stroke();
+    ctx.restore();
+  }
+  var t = cfg._tbox;
+  if(!t || !cfg._hover) return;
+  var pts = tboxCorners(t), i;
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,.8)"; ctx.lineWidth = 1.5; ctx.setLineDash([7,6]);
+  ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+  for(i=1;i<4;i++) ctx.lineTo(pts[i].x, pts[i].y);
+  ctx.closePath(); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#FFFFFF"; ctx.strokeStyle = "rgba(0,0,0,.5)"; ctx.lineWidth = 1.5;
+  for(i=0;i<4;i++){ ctx.beginPath(); ctx.rect(pts[i].x - 7, pts[i].y - 7, 14, 14); ctx.fill(); ctx.stroke(); }
+  var g = tboxGrip(t);
+  ctx.beginPath(); ctx.arc(g.x, g.y, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+// Drag the words to move them, a corner to resize, the round grip to rotate;
+// drag anywhere else to move the icon or phones. Same handles as the proofs.
+function bindBannerCanvas(cv, cfg, repaint){
+  cv.classList.add("bn");
+  var drag = null;
+  function pt(e){
+    var r = cv.getBoundingClientRect(), W = 500 * cv.width / cv.height;
+    return { x:(e.clientX - r.left)/r.width*W, y:(e.clientY - r.top)/r.height*500, W:W };
+  }
+  function near(a, p, r){ return a && Math.abs(a.x - p.x) < r && Math.abs(a.y - p.y) < r; }
+  function inBoxP(t, p){
+    if(!t) return false;
+    var c = Math.cos(-t.rot), sn = Math.sin(-t.rot), dx = p.x - t.cx, dy = p.y - t.cy;
+    var lx = dx*c - dy*sn, ly = dx*sn + dy*c;
+    return Math.abs(lx) <= t.w/2 + 12 && Math.abs(ly) <= t.h/2 + 12;
+  }
+  function what(p){
+    var t = cfg._tbox;
+    if(t && near(tboxGrip(t), p, 18)) return "rot";
+    if(t && tboxCorners(t).some(function(q){ return near(q, p, 18); })) return "size";
+    if(inBoxP(t, p)) return "text";
+    return "art";
+  }
+  cv.addEventListener("pointerenter", function(){ cfg._hover = true; repaint(); });
+  cv.addEventListener("pointerleave", function(){ if(!drag){ cfg._hover = false; repaint(); } });
+  cv.addEventListener("pointerdown", function(e){
+    var p = pt(e), t = cfg._tbox, w = what(p);
+    if(w === "rot") drag = { w:w, r0: cfg.trot || 0, a0: Math.atan2(p.y - t.cy, p.x - t.cx) };
+    else if(w === "size") drag = { w:w, s0: cfg.tsize || 1, d0: Math.max(10, Math.hypot(p.x - t.cx, p.y - t.cy)), cx:t.cx, cy:t.cy };
+    else if(w === "text") drag = { w:w, gx: p.x - (cfg.tdx || 0), gy: p.y - (cfg.tdy || 0), bx: t.cx - (cfg.tdx || 0) };
+    else drag = { w:w, gx: p.x - (cfg.adx || 0), gy: p.y - (cfg.ady || 0) };
+    cfg._hover = true;
+    try { cv.setPointerCapture(e.pointerId); } catch(err){}
+    e.preventDefault();
+  });
+  cv.addEventListener("pointermove", function(e){
+    var p = pt(e);
+    if(!drag){
+      var w = what(p);
+      cv.style.cursor = w === "rot" ? "crosshair" : (w === "size" ? "nwse-resize" : (w === "text" ? "grab" : "move"));
+      return;
+    }
+    if(drag.w === "rot"){
+      var t = cfg._tbox;
+      var a = drag.r0 + (Math.atan2(p.y - t.cy, p.x - t.cx) - drag.a0) * 180/Math.PI;
+      while(a > 180) a -= 360;
+      while(a < -180) a += 360;
+      cfg.trot = snapAngle(a);
+    } else if(drag.w === "size"){
+      cfg.tsize = Math.max(0.3, Math.min(3, drag.s0 * Math.hypot(p.x - drag.cx, p.y - drag.cy) / drag.d0));
+    } else if(drag.w === "text"){
+      cfg.tdx = p.x - drag.gx; cfg.tdy = p.y - drag.gy;
+      // snap the middle of the words to the middle of the canvas
+      cfg._snapX = null;
+      if(Math.abs(drag.bx + cfg.tdx - p.W/2) < 8){ cfg.tdx = p.W/2 - drag.bx; cfg._snapX = p.W/2; }
+    } else {
+      cfg.adx = p.x - drag.gx; cfg.ady = p.y - drag.gy;
+    }
+    repaint();
+    e.preventDefault();
+  });
+  function up(e){
+    if(!drag) return;
+    try { cv.releasePointerCapture(e.pointerId); } catch(err){}
+    drag = null; cfg._snapX = null;
+    repaint();
+  }
+  cv.addEventListener("pointerup", up);
+  cv.addEventListener("pointercancel", up);
+}
+
+// font, text colour, art size and reset for one wide asset
+function bannerTextControls(cfg, repaint, prefix){
+  var wrap = document.createElement("div");
+
+  var r1 = document.createElement("div");
+  r1.className = "autorow";
+  var fl = document.createElement("label");
+  fl.htmlFor = prefix + "-font"; fl.textContent = "Font";
+  var fsel = document.createElement("select");
+  fsel.className = "fontsel"; fsel.id = prefix + "-font";
+  fillFontSelect(fsel, "Same as above");
+  fsel.onchange = function(){ cfg.font = this.value || null; ensureFonts().then(repaint); };
+  var cl = document.createElement("label");
+  cl.htmlFor = prefix + "-tcol"; cl.textContent = "Text colour";
+  var col = document.createElement("input");
+  col.type = "color"; col.id = prefix + "-tcol";
+  col.oninput = function(){ cfg.color = this.value; repaint(); };
+  var same = document.createElement("button");
+  same.className = "btn small ghost colauto"; same.id = prefix + "-tauto"; same.textContent = "Same as above";
+  same.onclick = function(){ cfg.color = null; repaint(); };
+  [fl, fsel, cl, col, same].forEach(function(el){ r1.appendChild(el); });
+  wrap.appendChild(r1);
+
+  var r2 = document.createElement("div");
+  r2.className = "autorow";
+  var al = document.createElement("label");
+  al.htmlFor = prefix + "-art"; al.textContent = "Icon / phone size";
+  var art = document.createElement("input");
+  art.type = "range"; art.id = prefix + "-art"; art.min = 30; art.max = 220; art.step = 1; art.value = 100;
+  art.oninput = function(){ cfg.ascale = (+this.value)/100; repaint(); };
+  var reset = document.createElement("button");
+  reset.className = "btn small ghost"; reset.textContent = "Reset positions";
+  reset.onclick = function(){
+    cfg.tdx = 0; cfg.tdy = 0; cfg.tsize = 1; cfg.trot = 0; cfg.adx = 0; cfg.ady = 0; cfg.ascale = 1;
+    art.value = 100; repaint();
+  };
+  [al, art, reset].forEach(function(el){ r2.appendChild(el); });
+  wrap.appendChild(r2);
+
+  var p = document.createElement("p");
+  p.className = "hint";
+  p.textContent = "Drag the words to move them, a corner square to resize, the round grip to rotate. Drag anywhere else to move the icon or phones.";
+  wrap.appendChild(p);
+  return wrap;
+}
+function syncBannerTextControls(cfg, prefix){
+  var col = $(prefix + "-tcol");
+  if(!col) return;
+  col.value = cfg.color || fgColor();
+  $(prefix + "-tauto").setAttribute("aria-pressed", String(!cfg.color));
+  $(prefix + "-font").value = cfg.font || "";
 }
 
 function bannerShots(cfg){
@@ -2455,11 +2591,11 @@ function bannerBody(ctx, cfg, W, H){
     // up to three screens side by side: the interface itself, which is what
     // Apple asks the search results asset to show
     var picks = bannerShots(cfg), narrow = W/H < 1.7;
-    if(narrow) bannerText(ctx, cfg.head, cfg.sub, W/2, H*0.17, W*0.86, "center");
-    else bannerText(ctx, cfg.head, cfg.sub, 64, H/2, W*0.40, "left");
+    if(narrow) bannerText(ctx, cfg, W/2, H*0.17, W*0.86, "center");
+    else bannerText(ctx, cfg, 64, H/2, W*0.40, "left");
     var ph = narrow ? H*0.70 : H*0.84, cx = narrow ? W/2 : W*0.71, cy = narrow ? H*0.70 : H*0.56;
     var order = picks.length === 3 ? [1,2,0] : picks.map(function(_, n){ return n; });
-    order.forEach(function(n){
+    bannerArt(ctx, cfg, cx, cy, function(){ order.forEach(function(n){
       var sh = picks[n], ar = Math.min(2.22, Math.max(1.55, sh.img.naturalHeight/sh.img.naturalWidth));
       var side = picks.length === 1 ? 0 : (picks.length === 2 ? (n === 0 ? -0.5 : 0.5) : n - 1);
       var h = side ? ph*0.88 : ph, w = h/ar;
@@ -2468,47 +2604,55 @@ function bannerBody(ctx, cfg, W, H){
       ctx.rotate(side*6*Math.PI/180);
       drawDevice(ctx, sh.img, -w/2, -h/2, w, h);
       ctx.restore();
-    });
+    }); });
     return;
   }
   if(lay === "center"){
     if(ICON.img || ICON.bg !== "none"){
       var sz = 128;
-      ctx.save();
-      rr(ctx, W/2 - sz/2, 44, sz, sz, sz*0.23); ctx.clip();
-      drawIconArt(ctx, W/2 - sz/2, 44, sz);
-      ctx.restore();
+      bannerArt(ctx, cfg, W/2, 44 + sz/2, function(){
+        ctx.save();
+        rr(ctx, W/2 - sz/2, 44, sz, sz, sz*0.23); ctx.clip();
+        drawIconArt(ctx, W/2 - sz/2, 44, sz);
+        ctx.restore();
+      });
     }
-    bannerText(ctx, cfg.head, cfg.sub, W/2, H*0.66, W*0.72, "center");
+    bannerText(ctx, cfg, W/2, H*0.66, W*0.72, "center");
     return;
   }
   if(lay === "phone"){
-    bannerText(ctx, cfg.head, cfg.sub, 72, H/2, W*0.50, "left");
+    bannerText(ctx, cfg, 72, H/2, W*0.50, "left");
     var sh = S.shots[cfg.shot];
     if(sh && sh.img){
       var ar = Math.min(2.22, Math.max(1.55, sh.img.naturalHeight/sh.img.naturalWidth));
       var ph = H*1.30, pw = ph/ar;
-      ctx.save();
-      ctx.translate(W - pw*0.42, H*0.60);
-      ctx.rotate(-9*Math.PI/180);
-      drawDevice(ctx, sh.img, -pw/2, -ph/2, pw, ph);
-      ctx.restore();
+      bannerArt(ctx, cfg, W - pw*0.42, H*0.60, function(){
+        ctx.save();
+        ctx.translate(W - pw*0.42, H*0.60);
+        ctx.rotate(-9*Math.PI/180);
+        drawDevice(ctx, sh.img, -pw/2, -ph/2, pw, ph);
+        ctx.restore();
+      });
     }
     return;
   }
   var isz = 250;
-  ctx.save();
-  rr(ctx, 64, (H-isz)/2, isz, isz, isz*0.23); ctx.clip();
-  drawIconArt(ctx, 64, (H-isz)/2, isz);
-  ctx.restore();
-  bannerText(ctx, cfg.head, cfg.sub, 64 + isz + 54, H/2, W - (64+isz+54) - 60, "left");
+  bannerArt(ctx, cfg, 64 + isz/2, H/2, function(){
+    ctx.save();
+    rr(ctx, 64, (H-isz)/2, isz, isz, isz*0.23); ctx.clip();
+    drawIconArt(ctx, 64, (H-isz)/2, isz);
+    ctx.restore();
+  });
+  bannerText(ctx, cfg, 64 + isz + 54, H/2, W - (64+isz+54) - 60, "left");
 }
 
-function bannerText(ctx, head, sub, ax, cy, maxW, align){
+function bannerText(ctx, cfg, ax, cy, maxW, align){
+  var head = cfg.head, sub = cfg.sub;
   if(!head && !sub) return;
-  var fam = '"'+S.font+'"';
-  var weight = S.font === "Instrument Serif" ? "400" : (S.font === "Space Grotesk" ? "700" : "800");
-  var size = S.font === "Instrument Serif" ? 84 : 72, lines = [], i;
+  var face = cfg.font || S.font, fi = fontInfo(face);
+  var fam = '"'+face+'"';
+  var weight = fi.w;
+  var size = fi.base * 72/78, lines = [], i;
   if(head){
     for(i=0;i<8;i++){
       ctx.font = weight+" "+size+"px "+fam;
@@ -2523,27 +2667,45 @@ function bannerText(ctx, head, sub, ax, cy, maxW, align){
     sl = wrap(ctx, sub, maxW);
   }
   var total = lines.length*size*1.08 + (sl.length ? sl.length*ss*1.3 + 16 : 0);
+  var widest = 0;
+  ctx.font = weight+" "+size+"px "+fam;
+  for(i=0;i<lines.length;i++) widest = Math.max(widest, ctx.measureText(lines[i]).width);
+  ctx.font = "500 "+ss+'px "Archivo"';
+  for(i=0;i<sl.length;i++) widest = Math.max(widest, ctx.measureText(sl[i]).width);
+  var bx = align === "left" ? ax : (align === "center" ? ax - widest/2 : ax - widest);
+  var pcx = bx + widest/2, pcy = cy;
+  var ts = cfg.tsize || 1, rot = (cfg.trot || 0) * Math.PI/180;
+  var tdx = cfg.tdx || 0, tdy = cfg.tdy || 0;
+  cfg._tbox = { cx: pcx + tdx, cy: pcy + tdy, w: widest*ts, h: total*ts, rot: rot };
+
+  ctx.save();
+  ctx.translate(pcx + tdx, pcy + tdy);
+  ctx.rotate(rot);
+  ctx.scale(ts, ts);
+  ctx.translate(-pcx, -pcy);
   var y = cy - total/2 + size*0.80;
   ctx.textAlign = align; ctx.textBaseline = "alphabetic";
   ctx.font = weight+" "+size+"px "+fam;
-  ctx.fillStyle = fgColor();
+  ctx.fillStyle = cfg.color || fgColor();
   for(i=0;i<lines.length;i++){ ctx.fillText(lines[i], ax, y); y += size*1.08; }
   if(sl.length){
     ctx.font = "500 "+ss+'px "Archivo"';
-    ctx.fillStyle = fgAlpha(.8);
+    ctx.fillStyle = cfg.color ? hexA(cfg.color, .8) : fgAlpha(.8);
     y += 10;
     for(i=0;i<sl.length;i++){ y += ss*1.3; ctx.fillText(sl[i], ax, y); }
   }
+  ctx.restore();
 }
 
 function paintFeatureRaw(){
   var cv = $("featCv"), ctx = cv.getContext("2d");
   ctx.clearRect(0,0,1024,500);
-  drawFeature(ctx, 1024, 500);
+  drawBanner(ctx, FEAT, 1024, 500, true);
 }
 function syncFeatDecorColour(){
   withAssetPalette(function(){ $("featDecorCol").value = FEAT.decorColor || S.decorCustom || S.decorColor; });
   $("featDecorAuto").setAttribute("aria-pressed", String(!FEAT.decorColor));
+  withAssetPalette(function(){ syncBannerTextControls(FEAT, "feat"); });
 }
 function paintAssets(){ paintIcon(); paintFeature(); paintBanners(); syncAssetPalette(); syncFeatDecorColour(); }
 
@@ -2648,6 +2810,9 @@ function buildBannerCards(){
     r3.appendChild(cl); r3.appendChild(col); r3.appendChild(same);
     card.appendChild(r3);
 
+    card.appendChild(bannerTextControls(c, function(){ paintBanner(b); }, id));
+    bindBannerCanvas(cv, c, function(){ paintBanner(b); });
+
     var p = document.createElement("p");
     p.className = "hint"; p.textContent = b.hint;
     card.appendChild(p);
@@ -2666,8 +2831,9 @@ function paintBanner(b){
   withAssetPalette(function(){
     var ctx = cv.getContext("2d");
     ctx.clearRect(0, 0, cv.width, cv.height);
-    drawBanner(ctx, b.cfg, cv.width, cv.height);
+    drawBanner(ctx, b.cfg, cv.width, cv.height, true);
     $("bn-" + b.key + "-col").value = b.cfg.decorColor || S.decorCustom || S.decorColor;
+    syncBannerTextControls(b.cfg, "bn-" + b.key);
   });
   $("bn-" + b.key + "-auto").setAttribute("aria-pressed", String(!b.cfg.decorColor));
 }
@@ -2743,12 +2909,6 @@ $("logoFile").onchange = function(e){
 };
 $("iconZoom").oninput = function(e){ ICON.zoom = (+e.target.value)/100; paintAssets(); };
 bindSeg("iconBg", function(v){ ICON.bg = v; paintAssets(); });
-bindSeg("iconSize", function(v){
-  ICON.size = +v;
-  $("iconHead").innerHTML = "App icon &middot; " + ICON.size + " &times; " + ICON.size;
-  $("iconDl").textContent = "Download icon PNG \u00b7 " + ICON.size + " px";
-  paintIcon();
-});
 $("iconGuide").onclick = function(){
   ICON.guide = !ICON.guide;
   this.setAttribute("aria-pressed", String(ICON.guide));
@@ -2787,6 +2947,12 @@ $("featDecorScale").oninput = function(e){ FEAT.decorScale = (+e.target.value)/1
 $("featShot").onchange = function(e){ FEAT.shot = +e.target.value; paintFeature(); };
 $("featDecorCol").oninput = function(e){ FEAT.decorColor = e.target.value; paintFeature(); syncFeatDecorColour(); };
 $("featDecorAuto").onclick = function(){ FEAT.decorColor = null; paintFeature(); syncFeatDecorColour(); };
+(function(){
+  var repaint = function(){ paintFeature(); syncFeatDecorColour(); };
+  bindBannerCanvas($("featCv"), FEAT, repaint);
+  var hint = $("featCard").querySelector("p.hint");
+  $("featCard").insertBefore(bannerTextControls(FEAT, repaint, "feat"), hint);
+})();
 
 $("bc1").oninput = function(e){ ASSET.c1 = e.target.value; ASSET.c2 = $("bc2").value; paintAssets(); };
 $("bc2").oninput = function(e){ ASSET.c2 = e.target.value; ASSET.c1 = $("bc1").value; paintAssets(); };
@@ -2809,11 +2975,7 @@ $("iconDl").onclick = function(){
     return new Promise(function(res){ cv.toBlob(res, "image/png"); });
   }).then(function(b){
     return saveFile("app-icon-" + ICON.size + ".png", b).then(function(){
-      var note = ICON.size === 1024
-        ? (ICON.bg === "none"
-            ? " Apple rejects icons with transparency, so pick Gradient or Solid unless your logo is fully opaque."
-            : " Apple rounds the corners itself, so this square is correct.")
-        : " Well under the 1 MB cap.";
+      var note = " Well under the 1 MB cap.";
       assetStatus("Saved " + ICON.size + " \u00d7 " + ICON.size + ", " + Math.round(b.size/1024) + " KB." + note);
     });
   }).catch(function(err){ assetStatus(err && err.code === "declined" ? "Save cancelled." : "Could not save the icon."); });

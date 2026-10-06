@@ -10,18 +10,18 @@ Drop the plain shots straight off a phone, emulator or simulator. Pick a backgro
 
 | Asset | Google Play | App Store |
 |---|---|---|
-| Phone screenshots | 1080 × 1920 portrait, 1920 × 1080 landscape · 2–8 files | iPhone 6.9″ 1290 × 2796 and 1320 × 2868, 6.5″ 1242 × 2688, 5.5″ 1242 × 2208 · 1–10 files |
-| Tablet screenshots | — | iPad 13″ 2048 × 2732, iPad 11″ 1668 × 2388 |
+| Phone screenshots | 1080 × 1920 portrait, 1920 × 1080 landscape · 2–8 files | iPhone 6.9″ 1290 × 2796 and 1320 × 2868, 6.5″ 1242 × 2688, 5.5″ 1242 × 2208, 6.3″ 1206 × 2622, 6.1″ 1179 × 2556 (portrait or landscape), iPhone wide 1398 × 2034 and 2007 × 2853 (portrait or landscape) · 1–10 files |
+| Tablet screenshots | — | iPad 13″ 2048 × 2732 and 2064 × 2752 (portrait or landscape), iPad 11″ 1668 × 2388 |
 | App icon | 512 × 512 | 1024 × 1024, no transparency |
 | Feature graphic | 1024 × 500 | not required |
 
 Pick **Google Play**, **App Store** or **Both** at the top of the page. The output sizes, the icon size and the checklist all follow that choice, and "Download everything as one ZIP" lays the files out in `google-play/` and `app-store/` folders.
 
-Each screenshot row in **What the stores need** has its own size picker — Play portrait or landscape, iPhone 6.9″ / 6.5″ / 5.5″, iPad 13″ / 11″. **Build** and the one-ZIP download both use the size picked there, and the ZIP names the folder after it (`app-store/iphone-6.5/`). Picking a size in **Output size** updates the matching row too.
+Each screenshot row in **What the stores need** has its own size picker — Play portrait or landscape, iPhone 6.9″ / 6.5″ / 6.3″ / 6.1″ / 5.5″, iPhone wide, iPad 13″ / 11″. **Build** and the one-ZIP download both use the size picked there, and the ZIP names the folder after it (`app-store/iphone-6.5/`). Picking a size in **Output size** updates the matching row too.
 
 ## How to use it
 
-1. Drop your screenshots on the page, or use **Choose files** — you can also paste with `Ctrl+V`.
+1. Drop your screenshots on the page, or click anywhere in the drop box — you can also paste with `Ctrl+V`.
 2. Pick **Publishing to**: Play, App Store, or both.
 3. Write a headline for each shot in **Auto layout**, then hit **Generate layout**. It picks the layouts, angles, splits and backdrop for you; your words are kept.
 4. Fine-tune from there — background, backdrop shape, device frame, font, and per-shot text and phone position.
@@ -33,7 +33,7 @@ While you work the controls, a **live rail** pins the proofs under the top bar s
 
 **Across the whole set**
 - 8 background themes plus a free colour picker and gradient angle
-- Backdrop shapes: card, arcs, dots, band, none — with position and size
+- Backdrop shapes: card, arcs, dots, band, none — with position, size and colour. A picked shape colour stays put through theme and palette changes until you press **Auto**
 - Device frame: dark, light, or bare (no frame)
 - Headline font: Archivo, Bricolage Grotesque, Space Grotesk, Instrument Serif
 - Text colour: auto, light, dark
@@ -47,8 +47,8 @@ While you work the controls, a **live rail** pins the proofs under the top bar s
 - **Split this phone across 2 panels**, so one device spans two screenshots
 
 **Store assets**
-- App icon from your logo, with a gradient/solid/logo-only backdrop and a corner guide showing what the stores round off
-- Feature graphic with three layouts (icon left, centred, phone right) and the same backdrop shapes
+- App icon from your logo, with a gradient/solid/logo-only backdrop and a corner guide showing what the stores round off. Click the empty square to choose a logo, double-click to swap it
+- Feature graphic with three layouts (icon left, centred, phone right) and the same backdrop shapes, plus its own shape colour. It keeps the Store assets colours while you edit it
 
 ## Privacy
 

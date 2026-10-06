@@ -107,6 +107,8 @@ button{cursor:pointer}
   border:1px dashed var(--rule);border-radius:4px;background:var(--panel);
   text-align:center;
 }
+.drop{cursor:pointer}
+.drop:hover{border-color:var(--accent)}
 .drop.over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 9%,var(--panel))}
 .drop .crop{position:absolute;width:13px;height:13px;border:1px solid var(--ink);opacity:.45}
 .drop .crop.tl{top:8px;left:8px;border-right:0;border-bottom:0}
@@ -199,7 +201,8 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .assetcard{border:1px solid var(--rule);border-radius:4px;background:var(--panel);padding:16px}
 .assetcard h3{margin:0 0 12px;font-size:12px;font-weight:700;color:var(--ink-soft)}
 .assetcard canvas{width:100%;height:auto;display:block;border:1px solid var(--rule);border-radius:3px;background:var(--paper)}
-.assetcard canvas.icon{cursor:move}
+.assetcard canvas.icon{cursor:pointer}
+.assetcard canvas.icon.has{cursor:move}
 .assetcard input[type=text]{
   width:100%;border:1px solid var(--rule);border-radius:3px;background:var(--paper);
   padding:8px 10px;font-size:14px;margin-top:10px;
@@ -207,6 +210,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 .assetcard input[type=text]:focus{border-color:var(--accent);outline:none}
 .assetcard .btn.solid{margin-top:12px;width:100%}
 #featShot{border:1px solid var(--rule);border-radius:3px;background:var(--paper);padding:7px 9px;font-size:13px;max-width:190px}
+#decorAuto[aria-pressed="true"],#featDecorAuto[aria-pressed="true"],
 #iconGuide[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 @media (max-width:760px){.assetgrid{grid-template-columns:1fr}}
 .striphead{display:flex;align-items:baseline;gap:14px;margin:34px 0 12px;flex-wrap:wrap}
@@ -359,6 +363,10 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
         </div>
         <div class="row">
           <label for="decorScale">Size</label><input type="range" id="decorScale" min="40" max="220" step="1" value="100">
+        </div>
+        <div class="row">
+          <label for="decorCol">Colour</label><input type="color" id="decorCol">
+          <button class="btn small ghost" id="decorAuto" aria-pressed="true">Auto</button>
         </div>
         <h3 style="margin-top:16px">Text colour</h3>
         <div class="seg" id="fg">
@@ -547,7 +555,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           <button data-v="512" aria-pressed="true">Play 512</button>
           <button data-v="1024" aria-pressed="false">App Store 1024</button>
         </div>
-        <p class="hint">Drag the logo to reposition it. Both stores round the corners, so keep the mark inside the dashed shape. Play takes 512 × 512; the App Store takes 1024 × 1024 with no transparency. The guide is not exported.</p>
+        <p class="hint">Click the square to choose a logo; double-click it later to swap. Drag the logo to reposition it. Both stores round the corners, so keep the mark inside the dashed shape. Play takes 512 × 512; the App Store takes 1024 × 1024 with no transparency. The guide is not exported.</p>
         <button class="btn solid" id="iconDl">Download icon PNG &middot; 512 px</button>
       </div>
 
@@ -578,6 +586,11 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
           <label for="featDecorScale">Size</label>
           <input type="range" id="featDecorScale" min="20" max="200" step="1" value="100">
         </div>
+        <div class="autorow">
+          <label for="featDecorCol">Shape colour</label>
+          <input type="color" id="featDecorCol">
+          <button class="btn small ghost" id="featDecorAuto" aria-pressed="true">Same as above</button>
+        </div>
         <p class="hint">Play crops this on some surfaces, so keep the words near the middle.</p>
         <button class="btn solid" id="featDl">Download feature graphic PNG</button>
       </div>
@@ -585,7 +598,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
     <p class="status" id="assetStatus"></p>
   </section>
 
-  <p class="foot" id="foot">Google Play accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px, plus a 512 × 512 icon and a 1024 × 500 feature graphic. The App Store takes 1–10 screenshots per device size — 1290 × 2796 for the 6.9″ iPhone, 2048 × 2732 for the 13″ iPad — and a 1024 × 1024 icon with no transparency. Every size offered here sits inside those rules. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks.</p>
+  <p class="foot" id="foot">Google Play accepts 2–8 phone screenshots, PNG or JPEG, 16:9 or 9:16, every side between 320 and 3840 px, plus a 512 × 512 icon and a 1024 × 500 feature graphic. The App Store takes 1–10 screenshots per device size — 1290 × 2796 for the 6.9″ iPhone, 1179 × 2556 or 1206 × 2622 for the 6.1″/6.3″ iPhone, 2048 × 2732 or 2064 × 2752 for the 13″ iPad, each in portrait or landscape — and a 1024 × 1024 icon with no transparency. Every size offered here sits inside those rules. In “one long image” mode the background is painted across the whole set and sliced, so upload the files in the numbered order or the picture breaks.</p>
 </div>
 
 <input type="file" id="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
@@ -614,7 +627,19 @@ var SIZES = [
   { id:"ios-69b",       label:"iPhone 6.9\" \u00b7 1320 \u00d7 2868", w:1320, h:2868, store:"ios",  dev:"iphone", dir:"iphone-6.9-1320" },
   { id:"ios-65",        label:"iPhone 6.5\" \u00b7 1242 \u00d7 2688", w:1242, h:2688, store:"ios",  dev:"iphone", dir:"iphone-6.5" },
   { id:"ios-55",        label:"iPhone 5.5\" \u00b7 1242 \u00d7 2208", w:1242, h:2208, store:"ios",  dev:"iphone", dir:"iphone-5.5" },
+  { id:"ios-63",        label:"iPhone 6.3\" \u00b7 1206 \u00d7 2622", w:1206, h:2622, store:"ios",  dev:"iphone", dir:"iphone-6.3" },
+  { id:"ios-63l",       label:"iPhone 6.3\" landscape \u00b7 2622 \u00d7 1206", w:2622, h:1206, store:"ios", dev:"iphone", dir:"iphone-6.3-landscape" },
+  { id:"ios-61",        label:"iPhone 6.1\" \u00b7 1179 \u00d7 2556", w:1179, h:2556, store:"ios",  dev:"iphone", dir:"iphone-6.1" },
+  { id:"ios-61l",       label:"iPhone 6.1\" landscape \u00b7 2556 \u00d7 1179", w:2556, h:1179, store:"ios", dev:"iphone", dir:"iphone-6.1-landscape" },
+  // the newer App Store Connect slot that takes 1398 x 2034 and 2007 x 2853
+  { id:"iosw-s",        label:"iPhone wide \u00b7 1398 \u00d7 2034", w:1398, h:2034, store:"ios",  dev:"iphonew", dir:"iphone-wide-1398" },
+  { id:"iosw-sl",       label:"iPhone wide landscape \u00b7 2034 \u00d7 1398", w:2034, h:1398, store:"ios", dev:"iphonew", dir:"iphone-wide-1398-landscape" },
+  { id:"iosw-l",        label:"iPhone wide \u00b7 2007 \u00d7 2853", w:2007, h:2853, store:"ios",  dev:"iphonew", dir:"iphone-wide-2007" },
+  { id:"iosw-ll",       label:"iPhone wide landscape \u00b7 2853 \u00d7 2007", w:2853, h:2007, store:"ios", dev:"iphonew", dir:"iphone-wide-2007-landscape" },
   { id:"ipad-13",       label:"iPad 13\" \u00b7 2048 \u00d7 2732", w:2048, h:2732, store:"ios",  dev:"ipad",   dir:"ipad-13" },
+  { id:"ipad-13b",      label:"iPad 13\" \u00b7 2064 \u00d7 2752", w:2064, h:2752, store:"ios",  dev:"ipad",   dir:"ipad-13-2064" },
+  { id:"ipad-13l",      label:"iPad 13\" landscape \u00b7 2732 \u00d7 2048", w:2732, h:2048, store:"ios", dev:"ipad", dir:"ipad-13-landscape" },
+  { id:"ipad-13bl",     label:"iPad 13\" landscape \u00b7 2752 \u00d7 2064", w:2752, h:2064, store:"ios", dev:"ipad", dir:"ipad-13-2064-landscape" },
   { id:"ipad-11",       label:"iPad 11\" \u00b7 1668 \u00d7 2388", w:1668, h:2388, store:"ios",  dev:"ipad",   dir:"ipad-11" }
 ];
 function sizeById(id){ return SIZES.filter(function(z){ return z.id === id; })[0]; }
@@ -624,7 +649,8 @@ var S = {
   decor:"card", decorPos:0.62, decorScale:1, fgMode:"auto", themeFg:"light",
   frame:"dark", font:"Archivo", size:"play-portrait",
   // the size each checklist row and the ZIP export at, per device class
-  pick:{ play:"play-portrait", iphone:"ios-69", ipad:"ipad-13" },
+  pick:{ play:"play-portrait", iphone:"ios-69", iphonew:"iosw-s", ipad:"ipad-13" },
+  decorCustom:null, // a shape colour the user picked; wins over the theme's until "Auto"
   mode:"separate", seams:true, bgScope:"all", platform:"both",
   shots:[], sel:0
 };
@@ -700,21 +726,22 @@ function drawBackground(ctx,W,H,totalW){
   var wide = TW > W*1.01;
   ctx.save();
   var px = TW * S.decorPos, ds = S.decorScale;
+  var decorFill = S.decorCustom || S.decorColor;
   if(S.decor === "card"){
     ctx.globalAlpha = .88;
     ctx.translate(px, H*0.34);
     ctx.rotate(-22*Math.PI/180);
-    ctx.fillStyle = S.decorColor;
+    ctx.fillStyle = decorFill;
     var cw = W*0.96*ds, ch = H*0.46*ds;
     rr(ctx,-cw/2,-ch/2,cw,ch,W*0.04); ctx.fill();
   } else if(S.decor === "arcs"){
-    ctx.globalAlpha = .22; ctx.strokeStyle = S.decorColor;
+    ctx.globalAlpha = .22; ctx.strokeStyle = decorFill;
     for(var i=1;i<=(wide?9:4);i++){
       ctx.lineWidth = W*0.012;
       ctx.beginPath(); ctx.arc(px, H*0.9, W*0.20*i*ds, 0, Math.PI*2); ctx.stroke();
     }
   } else if(S.decor === "dots"){
-    ctx.globalAlpha = .20; ctx.fillStyle = S.decorColor;
+    ctx.globalAlpha = .20; ctx.fillStyle = decorFill;
     var step = W/18, r = W*0.006;
     for(var x=step/2;x<TW;x+=step){
       for(var y=step/2;y<H;y+=step){
@@ -722,7 +749,7 @@ function drawBackground(ctx,W,H,totalW){
       }
     }
   } else if(S.decor === "band"){
-    ctx.globalAlpha = .18; ctx.fillStyle = S.decorColor;
+    ctx.globalAlpha = .18; ctx.fillStyle = decorFill;
     ctx.translate(TW/2,H*0.62); ctx.rotate(-18*Math.PI/180);
     ctx.fillRect(-TW,-H*0.09,TW*2,H*0.18);
   }
@@ -1139,6 +1166,7 @@ function renderAll(){
   paintAssets();
   renderChecklist();
   renderPeek();
+  syncDecorColour();
 }
 
 /* ============ live rail ============
@@ -1449,7 +1477,9 @@ function addFiles(list){
   });
 }
 
-$("pick").onclick = function(){ $("file").click(); };
+$("pick").onclick = function(e){ e.stopPropagation(); $("file").click(); };
+// the whole drop box opens the picker, not just the button inside it
+$("drop").onclick = function(){ $("file").click(); };
 $("file").onchange = function(e){ addFiles(e.target.files); e.target.value = ""; };
 
 var drop = $("drop");
@@ -1485,6 +1515,14 @@ $("c2").oninput = function(e){ S.c2 = e.target.value; $("ac2").value = e.target.
 $("ang").oninput = function(e){ S.ang = +e.target.value; renderAll(); };
 $("decorPos").oninput = function(e){ S.decorPos = (+e.target.value)/100; renderAll(); };
 $("decorScale").oninput = function(e){ S.decorScale = (+e.target.value)/100; renderAll(); };
+// the picker shows the colour the shape is drawn in; picking one pins it so a
+// theme, palette or shuffle change no longer overwrites it
+function syncDecorColour(){
+  $("decorCol").value = S.decorCustom || S.decorColor;
+  $("decorAuto").setAttribute("aria-pressed", String(!S.decorCustom));
+}
+$("decorCol").oninput = function(e){ S.decorCustom = e.target.value; renderAll(); };
+$("decorAuto").onclick = function(){ S.decorCustom = null; renderAll(); };
 
 bindSeg("decor", function(v){ S.decor = v; renderAll(); });
 bindSeg("fg",    function(v){ S.fgMode = v; renderAll(); });
@@ -1962,6 +2000,9 @@ function checklistRows(){
       ok: n >= 1 && n <= 10,
       st: n < 1 ? "Add a shot" : (n > 10 ? "Remove " + (n-10) : n + " ready"),
       act: function(){ exportAt(S.pick.iphone); } });
+    rows.push({ store:"ios", nm:"iPhone wide screenshots", dev:"iphonew", sp:"only if App Store Connect shows this slot",
+      ok: n >= 1, st: n >= 1 ? "Optional" : "Add a shot",
+      act: function(){ exportAt(S.pick.iphonew); } });
     rows.push({ store:"ios", nm:"iPad screenshots", dev:"ipad", sp:"only if you ship for iPad",
       ok: n >= 1, st: n >= 1 ? "Optional" : "Add a shot",
       act: function(){ exportAt(S.pick.ipad); } });
@@ -2228,13 +2269,13 @@ function drawHeroSample(){
   var keep = {
     shots:S.shots, sel:S.sel, mode:S.mode, bgScope:S.bgScope, size:S.size,
     c1:S.c1, c2:S.c2, ang:S.ang, decor:S.decor, decorPos:S.decorPos,
-    decorScale:S.decorScale, decorColor:S.decorColor, themeFg:S.themeFg,
+    decorScale:S.decorScale, decorColor:S.decorColor, decorCustom:S.decorCustom, themeFg:S.themeFg,
     fgMode:S.fgMode, frame:S.frame, font:S.font
   };
   S.mode = "continuous"; S.bgScope = "all"; S.size = "portrait";
   S.c1 = "#14243D"; S.c2 = "#4C6FA5"; S.ang = 150;
   S.decor = "card"; S.decorPos = 0.30; S.decorScale = 1.05;
-  S.decorColor = "#E3C9A0"; S.themeFg = "light"; S.fgMode = "auto";
+  S.decorColor = "#E3C9A0"; S.decorCustom = null; S.themeFg = "light"; S.fgMode = "auto";
   S.frame = "dark"; S.font = "Archivo"; S.sel = -1;
   S.shots = [
     sampleShot(m0, "Everything in one place", "", { span:true, layout:"tilt", rot:-11, scale:1.02 }),
@@ -2288,7 +2329,7 @@ function syncAssetPalette(){
   $("bc2").value = own ? ASSET.c2 : S.c2;
   $("bState").textContent = own ? "Using its own colours" : "Following the screenshots";
 }
-var FEAT = { head:"", sub:"", layout:"left", shot:0, decor:"same", decorPos:0.62, decorScale:1 };
+var FEAT = { head:"", sub:"", layout:"left", shot:0, decor:"same", decorPos:0.62, decorScale:1, decorColor:null };
 
 function drawIconArt(ctx, x, y, W){
   ctx.save();
@@ -2315,8 +2356,15 @@ function drawIconArt(ctx, x, y, W){
   ctx.restore();
 }
 
-function paintIcon(){
+// Every preview repaint goes through the asset palette. Calling the raw painters
+// directly drew with the screenshot colours, so the colours picked under Store
+// assets snapped back whenever a feature-graphic or icon control was touched.
+function paintIcon(){ withAssetPalette(paintIconRaw); }
+function paintFeature(){ withAssetPalette(paintFeatureRaw); }
+
+function paintIconRaw(){
   var cv = $("iconCv"), W = 512, ctx = cv.getContext("2d");
+  cv.classList.toggle("has", !!ICON.img);
   ctx.clearRect(0,0,W,W);
   drawIconArt(ctx, 0, 0, W);
   if(!ICON.img){
@@ -2338,12 +2386,13 @@ function paintIcon(){
 }
 
 function drawFeature(ctx, W, H){
-  var keep = { d:S.decor, p:S.decorPos, s:S.decorScale };
+  var keep = { d:S.decor, p:S.decorPos, s:S.decorScale, c:S.decorCustom };
   if(FEAT.decor !== "same") S.decor = FEAT.decor;
   S.decorPos = FEAT.decorPos;
   S.decorScale = FEAT.decorScale;
+  if(FEAT.decorColor) S.decorCustom = FEAT.decorColor;
   drawBackground(ctx, W, H, W);
-  S.decor = keep.d; S.decorPos = keep.p; S.decorScale = keep.s;
+  S.decor = keep.d; S.decorPos = keep.p; S.decorScale = keep.s; S.decorCustom = keep.c;
   var lay = FEAT.layout;
   if(lay === "center"){
     if(ICON.img || ICON.bg !== "none"){
@@ -2410,12 +2459,16 @@ function bannerText(ctx, head, sub, ax, cy, maxW, align){
   }
 }
 
-function paintFeature(){
+function paintFeatureRaw(){
   var cv = $("featCv"), ctx = cv.getContext("2d");
   ctx.clearRect(0,0,1024,500);
   drawFeature(ctx, 1024, 500);
 }
-function paintAssets(){ withAssetPalette(function(){ paintIcon(); paintFeature(); }); syncAssetPalette(); }
+function syncFeatDecorColour(){
+  withAssetPalette(function(){ $("featDecorCol").value = FEAT.decorColor || S.decorCustom || S.decorColor; });
+  $("featDecorAuto").setAttribute("aria-pressed", String(!FEAT.decorColor));
+}
+function paintAssets(){ paintIcon(); paintFeature(); syncAssetPalette(); syncFeatDecorColour(); }
 
 function fillShotSelect(){
   var sel = $("featShot"), n = S.shots.length;
@@ -2475,6 +2528,10 @@ $("iconCv").addEventListener("pointermove", function(e){
   paintAssets();
   e.preventDefault();
 });
+// the square says "Choose a logo", so a click on it opens the picker; once a
+// logo is in, single drags move it and a double-click swaps it
+$("iconCv").addEventListener("click", function(){ if(!ICON.img) $("logoFile").click(); });
+$("iconCv").addEventListener("dblclick", function(){ if(ICON.img) $("logoFile").click(); });
 $("iconCv").addEventListener("pointerup", function(){ iconDrag = null; });
 $("iconCv").addEventListener("pointercancel", function(){ iconDrag = null; });
 
@@ -2485,6 +2542,8 @@ bindSeg("featDecor", function(v){ FEAT.decor = v; paintFeature(); });
 $("featDecorPos").oninput   = function(e){ FEAT.decorPos = (+e.target.value)/100; paintFeature(); };
 $("featDecorScale").oninput = function(e){ FEAT.decorScale = (+e.target.value)/100; paintFeature(); };
 $("featShot").onchange = function(e){ FEAT.shot = +e.target.value; paintFeature(); };
+$("featDecorCol").oninput = function(e){ FEAT.decorColor = e.target.value; paintFeature(); syncFeatDecorColour(); };
+$("featDecorAuto").onclick = function(){ FEAT.decorColor = null; paintFeature(); syncFeatDecorColour(); };
 
 $("bc1").oninput = function(e){ ASSET.c1 = e.target.value; ASSET.c2 = $("bc2").value; paintAssets(); };
 $("bc2").oninput = function(e){ ASSET.c2 = e.target.value; ASSET.c1 = $("bc1").value; paintAssets(); };

@@ -213,6 +213,12 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
 #decorAuto[aria-pressed="true"],#featDecorAuto[aria-pressed="true"],
 #iconGuide[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 @media (max-width:760px){.assetgrid{grid-template-columns:1fr}}
+.subhead{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:19px;letter-spacing:-.02em;margin:38px 0 6px}
+.bannergrid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:14px;align-items:start}
+.bannergrid .wide{grid-column:1/-1}
+.bannergrid .seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.bannergrid select{border:1px solid var(--rule);border-radius:3px;background:var(--paper);padding:7px 9px;font-size:13px;max-width:190px}
+@media (max-width:760px){.bannergrid{grid-template-columns:1fr}}
 .striphead{display:flex;align-items:baseline;gap:14px;margin:34px 0 12px;flex-wrap:wrap}
 .striphead h3{font-family:"Bricolage Grotesque",sans-serif;font-weight:600;font-size:18px;margin:0;letter-spacing:-.02em}
 .striphead .note{font-size:13px;color:var(--ink-soft)}
@@ -569,6 +575,7 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
             <button data-v="left" aria-pressed="true">Icon left</button>
             <button data-v="center" aria-pressed="false">Centred</button>
             <button data-v="phone" aria-pressed="false">Phone right</button>
+            <button data-v="phones" aria-pressed="false">Phones</button>
           </div>
           <select id="featShot" aria-label="Screenshot shown on the right"></select>
         </div>
@@ -594,6 +601,11 @@ input[type=range]{flex:1;accent-color:var(--accent);min-width:0}
         <p class="hint">Play crops this on some surfaces, so keep the words near the middle.</p>
         <button class="btn solid" id="featDl">Download feature graphic PNG</button>
       </div>
+    </div>
+    <div id="iosBannerWrap">
+      <h3 class="subhead">App Store product page &amp; search</h3>
+      <p class="autonote">Apple's new creative assets. The <strong>header</strong> is the first thing on your product page; the <strong>search results</strong> asset replaces the screenshots in an App Store search result; the <strong>universal</strong> asset is one 16:9 image Apple can use for both. Sizes follow Apple's templates. Keep one clear idea, keep the logo and words in the centre, and keep it suitable for a 4+ rating — no prices, discounts, URLs or awards.</p>
+      <div class="bannergrid" id="iosBanners"></div>
     </div>
     <p class="status" id="assetStatus"></p>
   </section>
@@ -2023,6 +2035,11 @@ function checklistRows(){
       ok: iconReady() && ICON.bg !== "none",
       st: !iconReady() ? "Add a logo" : (ICON.bg === "none" ? "Needs a background" : "Ready"),
       act: function(){ exportIcon(1024); } });
+    BANNERS.forEach(function(b){
+      rows.push({ store:"ios", nm:b.title, sp:b.w + " × " + b.h + " PNG, optional",
+        ok: !!b.cfg.head, st: b.cfg.head ? "Ready" : "Optional",
+        act: function(){ exportBanner(b); } });
+    });
   }
   return rows;
 }
@@ -2094,6 +2111,7 @@ function refitSizePicker(){
 function applyPlatform(){
   refitSizePicker();
   $("featCard").style.display = wants("play") ? "" : "none";
+  $("iosBannerWrap").style.display = wants("ios") ? "" : "none";
   var both = S.platform === "both";
   $("iconSize").style.display = both ? "" : "none";
   if(!both){
@@ -2182,6 +2200,11 @@ function downloadBundle(){
     jobs.push({ note:"App Store icon", run:function(){
       return iconBytes(1024).then(function(u){ files.push({ name:"app-store/app-icon-1024.png", data:u }); });
     }});
+    BANNERS.forEach(function(b){
+      jobs.push({ note:b.title, run:function(){
+        return bannerBytes(b).then(blobBytes).then(function(u){ files.push({ name:"app-store/" + b.file, data:u }); });
+      }});
+    });
   }
 
   var chain = ensureFonts();
@@ -2398,15 +2421,56 @@ function paintIconRaw(){
   }
 }
 
-function drawFeature(ctx, W, H){
+function drawFeature(ctx, W, H){ drawBanner(ctx, FEAT, W, H); }
+
+// Every wide asset (Play feature graphic, App Store header, search results,
+// universal) is laid out on a canvas 500 units tall and scaled to the output,
+// so one set of spacings fits 1024 x 500 and 5244 x 2950 alike.
+function drawBanner(ctx, cfg, outW, outH){
+  var k = outH/500, W = outW/k, H = 500;
+  ctx.save();
+  ctx.scale(k, k);
   var keep = { d:S.decor, p:S.decorPos, s:S.decorScale, c:S.decorCustom };
-  if(FEAT.decor !== "same") S.decor = FEAT.decor;
-  S.decorPos = FEAT.decorPos;
-  S.decorScale = FEAT.decorScale;
-  if(FEAT.decorColor) S.decorCustom = FEAT.decorColor;
+  if(cfg.decor !== "same") S.decor = cfg.decor;
+  S.decorPos = cfg.decorPos;
+  S.decorScale = cfg.decorScale;
+  if(cfg.decorColor) S.decorCustom = cfg.decorColor;
   drawBackground(ctx, W, H, W);
   S.decor = keep.d; S.decorPos = keep.p; S.decorScale = keep.s; S.decorCustom = keep.c;
-  var lay = FEAT.layout;
+  bannerBody(ctx, cfg, W, H);
+  ctx.restore();
+}
+
+function bannerShots(cfg){
+  var list = S.shots.filter(function(sh){ return sh.img && !sh.cont; });
+  if(!list.length) return [];
+  var first = S.shots[cfg.shot], at = Math.max(0, list.indexOf(first)), out = [];
+  for(var i=0;i<Math.min(3, list.length);i++) out.push(list[(at + i) % list.length]);
+  return out;
+}
+
+function bannerBody(ctx, cfg, W, H){
+  var lay = cfg.layout;
+  if(lay === "phones"){
+    // up to three screens side by side: the interface itself, which is what
+    // Apple asks the search results asset to show
+    var picks = bannerShots(cfg), narrow = W/H < 1.7;
+    if(narrow) bannerText(ctx, cfg.head, cfg.sub, W/2, H*0.17, W*0.86, "center");
+    else bannerText(ctx, cfg.head, cfg.sub, 64, H/2, W*0.40, "left");
+    var ph = narrow ? H*0.70 : H*0.84, cx = narrow ? W/2 : W*0.71, cy = narrow ? H*0.70 : H*0.56;
+    var order = picks.length === 3 ? [1,2,0] : picks.map(function(_, n){ return n; });
+    order.forEach(function(n){
+      var sh = picks[n], ar = Math.min(2.22, Math.max(1.55, sh.img.naturalHeight/sh.img.naturalWidth));
+      var side = picks.length === 1 ? 0 : (picks.length === 2 ? (n === 0 ? -0.5 : 0.5) : n - 1);
+      var h = side ? ph*0.88 : ph, w = h/ar;
+      ctx.save();
+      ctx.translate(cx + side*ph/ar*0.86, cy + Math.abs(side)*H*0.04);
+      ctx.rotate(side*6*Math.PI/180);
+      drawDevice(ctx, sh.img, -w/2, -h/2, w, h);
+      ctx.restore();
+    });
+    return;
+  }
   if(lay === "center"){
     if(ICON.img || ICON.bg !== "none"){
       var sz = 128;
@@ -2415,12 +2479,12 @@ function drawFeature(ctx, W, H){
       drawIconArt(ctx, W/2 - sz/2, 44, sz);
       ctx.restore();
     }
-    bannerText(ctx, FEAT.head, FEAT.sub, W/2, H*0.66, W*0.72, "center");
+    bannerText(ctx, cfg.head, cfg.sub, W/2, H*0.66, W*0.72, "center");
     return;
   }
   if(lay === "phone"){
-    bannerText(ctx, FEAT.head, FEAT.sub, 72, H/2, W*0.50, "left");
-    var sh = S.shots[FEAT.shot];
+    bannerText(ctx, cfg.head, cfg.sub, 72, H/2, W*0.50, "left");
+    var sh = S.shots[cfg.shot];
     if(sh && sh.img){
       var ar = Math.min(2.22, Math.max(1.55, sh.img.naturalHeight/sh.img.naturalWidth));
       var ph = H*1.30, pw = ph/ar;
@@ -2437,7 +2501,7 @@ function drawFeature(ctx, W, H){
   rr(ctx, 64, (H-isz)/2, isz, isz, isz*0.23); ctx.clip();
   drawIconArt(ctx, 64, (H-isz)/2, isz);
   ctx.restore();
-  bannerText(ctx, FEAT.head, FEAT.sub, 64 + isz + 54, H/2, W - (64+isz+54) - 60, "left");
+  bannerText(ctx, cfg.head, cfg.sub, 64 + isz + 54, H/2, W - (64+isz+54) - 60, "left");
 }
 
 function bannerText(ctx, head, sub, ax, cy, maxW, align){
@@ -2481,7 +2545,171 @@ function syncFeatDecorColour(){
   withAssetPalette(function(){ $("featDecorCol").value = FEAT.decorColor || S.decorCustom || S.decorColor; });
   $("featDecorAuto").setAttribute("aria-pressed", String(!FEAT.decorColor));
 }
-function paintAssets(){ paintIcon(); paintFeature(); syncAssetPalette(); syncFeatDecorColour(); }
+function paintAssets(){ paintIcon(); paintFeature(); paintBanners(); syncAssetPalette(); syncFeatDecorColour(); }
+
+/* ============ App Store header, search results, universal ============
+   Sizes are Apple's template canvases. Each card is built here rather than in
+   the markup since the three only differ in size, copy and starting layout. */
+function bannerState(layout){
+  return { head:"", sub:"", layout:layout, shot:0, decor:"same", decorPos:0.62, decorScale:1, decorColor:null };
+}
+var BANNERS = [
+  { key:"header", title:"Product page header", w:3840, h:1646, wide:true,
+    file:"product-page-header-3840x1646.png", cfg:bannerState("left"),
+    hint:"The first thing on your product page. One clear idea for someone who has never seen the app; busy art gets lost. It is cropped differently on iPhone, iPad and Mac, so keep the logo and words near the middle." },
+  { key:"search", title:"Search results", w:3840, h:2560,
+    file:"search-results-3840x2560.png", cfg:bannerState("phones"),
+    hint:"Shown in place of your screenshots in an App Store search result. Make the purpose obvious at a glance and show the app itself. Leave it out and Apple shows your screenshots instead." },
+  { key:"universal", title:"Universal creative asset", w:5244, h:2950,
+    file:"universal-creative-asset-5244x2950.png", cfg:bannerState("center"),
+    hint:"One 16:9 image Apple can use for both the header and search results. Everything that matters goes in the central area." }
+];
+function bannerByKey(k){ return BANNERS.filter(function(b){ return b.key === k; })[0]; }
+
+function bannerSeg(id, items, val){
+  var seg = document.createElement("div");
+  seg.className = "seg"; seg.id = id;
+  items.forEach(function(it){
+    var b = document.createElement("button");
+    b.dataset.v = it[0]; b.textContent = it[1];
+    b.setAttribute("aria-pressed", String(it[0] === val));
+    seg.appendChild(b);
+  });
+  return seg;
+}
+function bannerRange(label, id, min, max, val, fn){
+  var lab = document.createElement("label");
+  lab.htmlFor = id; lab.textContent = label;
+  var inp = document.createElement("input");
+  inp.type = "range"; inp.id = id; inp.min = min; inp.max = max; inp.step = 1; inp.value = val;
+  inp.oninput = function(){ fn(+this.value); };
+  return [lab, inp];
+}
+
+function buildBannerCards(){
+  var host = $("iosBanners");
+  BANNERS.forEach(function(b){
+    var c = b.cfg, id = "bn-" + b.key;
+    var card = document.createElement("div");
+    card.className = "assetcard" + (b.wide ? " wide" : "");
+    host.appendChild(card); // in the page first, so bindSeg can find its parts
+
+    var h = document.createElement("h3");
+    h.innerHTML = b.title + " &middot; " + b.w + " &times; " + b.h + " &middot; App Store";
+    card.appendChild(h);
+
+    var cv = document.createElement("canvas");
+    cv.id = id + "-cv";
+    cv.width = 1024; cv.height = Math.round(1024 * b.h / b.w);
+    card.appendChild(cv);
+
+    [["head","Headline"],["sub","Supporting line, optional"]].forEach(function(f){
+      var inp = document.createElement("input");
+      inp.type = "text"; inp.placeholder = f[1]; inp.setAttribute("aria-label", b.title + " " + f[1]);
+      inp.oninput = function(){ c[f[0]] = this.value; paintBanner(b); renderChecklist(); };
+      card.appendChild(inp);
+    });
+
+    var row = document.createElement("div");
+    row.className = "autorow";
+    var lay = bannerSeg(id + "-layout",
+      [["left","Icon left"],["center","Centred"],["phone","Phone right"],["phones","Phones"]], c.layout);
+    row.appendChild(lay);
+    var sel = document.createElement("select");
+    sel.id = id + "-shot"; sel.setAttribute("aria-label", b.title + " screenshot");
+    sel.onchange = function(){ c.shot = +this.value; paintBanner(b); };
+    row.appendChild(sel);
+    card.appendChild(row);
+    bindSeg(lay.id, function(v){ c.layout = v; paintBanner(b); });
+
+    var dec = bannerSeg(id + "-decor",
+      [["same","Same shape"],["none","No shape"],["card","Card"],["arcs","Arcs"],["dots","Dots"],["band","Band"]], c.decor);
+    dec.style.marginTop = "10px";
+    card.appendChild(dec);
+    bindSeg(dec.id, function(v){ c.decor = v; paintBanner(b); });
+
+    var r2 = document.createElement("div");
+    r2.className = "autorow";
+    bannerRange("Place", id + "-pos", 0, 100, 62, function(v){ c.decorPos = v/100; paintBanner(b); })
+      .concat(bannerRange("Size", id + "-scale", 20, 200, 100, function(v){ c.decorScale = v/100; paintBanner(b); }))
+      .forEach(function(el){ r2.appendChild(el); });
+    card.appendChild(r2);
+
+    var r3 = document.createElement("div");
+    r3.className = "autorow";
+    var cl = document.createElement("label");
+    cl.htmlFor = id + "-col"; cl.textContent = "Shape colour";
+    var col = document.createElement("input");
+    col.type = "color"; col.id = id + "-col";
+    col.oninput = function(){ c.decorColor = this.value; paintBanner(b); };
+    var same = document.createElement("button");
+    same.className = "btn small ghost"; same.id = id + "-auto"; same.textContent = "Same as above";
+    same.onclick = function(){ c.decorColor = null; paintBanner(b); };
+    r3.appendChild(cl); r3.appendChild(col); r3.appendChild(same);
+    card.appendChild(r3);
+
+    var p = document.createElement("p");
+    p.className = "hint"; p.textContent = b.hint;
+    card.appendChild(p);
+
+    var dl = document.createElement("button");
+    dl.className = "btn solid"; dl.id = id + "-dl";
+    dl.textContent = "Download " + b.title.toLowerCase() + " PNG";
+    dl.onclick = function(){ exportBanner(b); };
+    card.appendChild(dl);
+  });
+}
+
+function paintBanner(b){
+  var cv = $("bn-" + b.key + "-cv");
+  if(!cv) return;
+  withAssetPalette(function(){
+    var ctx = cv.getContext("2d");
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    drawBanner(ctx, b.cfg, cv.width, cv.height);
+    $("bn-" + b.key + "-col").value = b.cfg.decorColor || S.decorCustom || S.decorColor;
+  });
+  $("bn-" + b.key + "-auto").setAttribute("aria-pressed", String(!b.cfg.decorColor));
+}
+function paintBanners(){ BANNERS.forEach(paintBanner); }
+
+function fillBannerSelects(){
+  var n = S.shots.length;
+  BANNERS.forEach(function(b){
+    var sel = $("bn-" + b.key + "-shot");
+    if(!sel) return;
+    sel.innerHTML = "";
+    if(!n){
+      var o = document.createElement("option");
+      o.textContent = "No screenshots yet"; o.value = "0";
+      sel.appendChild(o); sel.disabled = true;
+      return;
+    }
+    sel.disabled = false;
+    for(var i=0;i<n;i++){
+      var op = document.createElement("option");
+      op.value = i; op.textContent = (b.cfg.layout === "phones" ? "Start at screenshot " : "Screenshot ") + (i+1);
+      sel.appendChild(op);
+    }
+    if(b.cfg.shot >= n) b.cfg.shot = 0;
+    sel.value = b.cfg.shot;
+  });
+}
+
+function bannerBytes(b){
+  var cv = document.createElement("canvas");
+  cv.width = b.w; cv.height = b.h;
+  withAssetPalette(function(){ drawBanner(cv.getContext("2d"), b.cfg, b.w, b.h); });
+  return new Promise(function(res){ cv.toBlob(res, "image/png"); });
+}
+function exportBanner(b){
+  assetStatus("Rendering the " + b.title.toLowerCase() + "…");
+  ensureFonts().then(function(){ return bannerBytes(b); }).then(function(blob){
+    return saveFile(b.file, blob).then(function(){
+      assetStatus("Saved " + b.w + " × " + b.h + ", " + Math.round(blob.size/1024) + " KB.");
+    });
+  }).catch(function(err){ assetStatus(err && err.code === "declined" ? "Save cancelled." : "Could not save that image."); });
+}
 
 function fillShotSelect(){
   var sel = $("featShot"), n = S.shots.length;
@@ -2490,6 +2718,7 @@ function fillShotSelect(){
     var o = document.createElement("option");
     o.textContent = "No screenshots yet"; o.value = "0";
     sel.appendChild(o); sel.disabled = true;
+    fillBannerSelects();
     return;
   }
   sel.disabled = false;
@@ -2500,6 +2729,7 @@ function fillShotSelect(){
   }
   if(FEAT.shot >= n) FEAT.shot = 0;
   sel.value = FEAT.shot;
+  fillBannerSelects();
 }
 
 $("iconPick").onclick = function(){ $("logoFile").click(); };
@@ -2604,6 +2834,7 @@ $("featDl").onclick = function(){
 };
 
 
+buildBannerCards();
 $("ac1").value = S.c1; $("ac2").value = S.c2;
 syncAssetPalette();
 

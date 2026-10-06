@@ -14,6 +14,9 @@ Drop the plain shots straight off a phone, emulator or simulator. Pick a backgro
 | Tablet screenshots | — | iPad 13″ 2048 × 2732 and 2064 × 2752 (portrait or landscape), iPad 11″ 1668 × 2388 |
 | App icon | 512 × 512 | 1024 × 1024, no transparency |
 | Feature graphic | 1024 × 500 | not required |
+| Product page header | — | 3840 × 1646, optional |
+| Search results asset | — | 3840 × 2560, optional |
+| Universal creative asset | — | 5244 × 2950 (16:9), optional — Apple can use it for both the header and search results |
 
 Pick **Google Play**, **App Store** or **Both** at the top of the page. The output sizes, the icon size and the checklist all follow that choice, and "Download everything as one ZIP" lays the files out in `google-play/` and `app-store/` folders.
 
@@ -47,8 +50,9 @@ While you work the controls, a **live rail** pins the proofs under the top bar s
 - **Split this phone across 2 panels**, so one device spans two screenshots
 
 **Store assets**
+- App Store product page header, search results asset and universal creative asset, at the sizes in Apple's templates. Each has its own headline, layout (including **Phones**, which shows up to three screenshots side by side), backdrop shape and shape colour, and goes into `app-store/` in the one-ZIP download. Apple asks for one clear idea, logo and words near the centre, and nothing unsuitable for a 4+ rating — no prices, discounts, URLs or awards
 - App icon from your logo, with a gradient/solid/logo-only backdrop and a corner guide showing what the stores round off. Click the empty square to choose a logo, double-click to swap it
-- Feature graphic with three layouts (icon left, centred, phone right) and the same backdrop shapes, plus its own shape colour. It keeps the Store assets colours while you edit it
+- Feature graphic with four layouts (icon left, centred, phone right, phones) and the same backdrop shapes, plus its own shape colour. It keeps the Store assets colours while you edit it
 
 ## Privacy
 
